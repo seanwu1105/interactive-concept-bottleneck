@@ -46,3 +46,5 @@ jobs:
         run: |
           poetry run python -m pylint **/*.py --errors-only
           poetry run python -m black **/*.py --check
+
+      - uses: jakebailey/pyright-action@v1

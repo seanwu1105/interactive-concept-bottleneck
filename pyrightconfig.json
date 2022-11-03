@@ -1,0 +1,13 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "typeCheckingMode": "strict",
+  "useLibraryCodeForTypes": true,
+  "reportCallInDefaultInitializer": "warning",
+  "reportImplicitStringConcatenation": "warning",
+  "reportMissingSuperCall": "warning",
+  "reportPropertyTypeMismatch": "warning",
+  "reportUninitializedInstanceVariable": "warning",
+  "reportUnnecessaryTypeIgnoreComment": "warning",
+  "reportUnusedCallResult": "warning"
+}
