@@ -1,8 +1,5 @@
-from src.concept_bottleneck.dataset import CUB200_2011
-
-
 def main():
-    print(CUB200_2011())
+    pass
 
 
 if __name__ == "__main__":
