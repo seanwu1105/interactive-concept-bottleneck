@@ -3,6 +3,7 @@
   "venv": ".venv",
   "typeCheckingMode": "strict",
   "useLibraryCodeForTypes": true,
+  "reportMissingTypeStubs": "none",
   "reportCallInDefaultInitializer": "warning",
   "reportImplicitStringConcatenation": "warning",
   "reportMissingSuperCall": "warning",
