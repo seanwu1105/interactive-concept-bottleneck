@@ -1,4 +1,5 @@
 import pathlib
+import typing
 
 import numpy as np
 import numpy.typing as npt
@@ -12,44 +13,52 @@ class CUB200_2011(
     Dataset[tuple[npt.NDArray[np.int_], Image.Image]]
 ):  # pylint: disable=invalid-name
     url = "https://data.caltech.edu/records/65de6-vp158/files/CUB_200_2011.tgz"
+    md5 = "97eceeb196236b17998738112f37df78"
+    root = pathlib.Path(__file__).parent.resolve() / "data"
 
-    def __init__(self, root: str = "data"):
+    def __init__(self, train: bool = True, download: bool = True):
         super().__init__()
-        self.root = pathlib.Path(__file__).parent.resolve() / root
-        self.attribute_data: npt.NDArray[np.int_]
-        self.image_paths: dict[int, str]
 
-        download_and_extract_archive(url=self.url, download_root=str(self.root))
+        if download:
+            download_and_extract_archive(
+                url=self.url, download_root=str(self.root), md5=self.md5
+            )
 
-        self._load_image_attribute_labels()
-        self._load_image_paths()
+        self._train_test_split = self._load_train_test_split()
+        self._attributes = self._load_image_attribute_labels(train)
+        self._image_paths = self._load_image_paths()
 
-    def _load_image_attribute_labels(self):
+    def _load_train_test_split(self):
+        filepath = self.root / "CUB_200_2011" / "train_test_split.txt"
+        return np.loadtxt(filepath, usecols=1, dtype=np.int_)
+
+    def _load_image_attribute_labels(self, train: bool) -> npt.NDArray[np.int_]:
         filepath = (
             self.root / "CUB_200_2011" / "attributes" / "image_attribute_labels.txt"
         )
 
-        # Only load the image ID, attribute ID and whether the attribute is present.
-        self.attribute_data = np.loadtxt(filepath, usecols=(0, 2), dtype=np.int_)
+        attributes = np.loadtxt(filepath, usecols=(0, 2), dtype=np.int_)
+        grouped = groupby(attributes, col=0)
+        return grouped[np.nonzero(self._train_test_split == train)]
 
     def _load_image_paths(self):
         filepath = self.root / "CUB_200_2011" / "images.txt"
         with open(filepath, encoding="utf-8") as f:
-            self.image_paths = {
-                int(line.split()[0]): line.split()[1] for line in f.readlines()
-            }
+            image_paths = tuple(line.split()[1] for line in f.readlines())
+        return image_paths
 
     def __len__(self):
-        return len(np.unique(self.attribute_data[:, 0]))  # type: ignore
+        return len(self._attributes)
 
-    def __getitem__(self, idx: int):
-        image_id = idx + 1
+    def __getitem__(self, idx: int) -> tuple[npt.NDArray[np.int_], Image.Image]:
+        image_path = self.root / "CUB_200_2011" / "images" / self._image_paths[idx]
+        return (self._attributes[idx], pil_loader(str(image_path)))
 
-        # Assume the attribute ID is sorted.
-        concept: npt.NDArray[np.int_] = self.attribute_data[
-            self.attribute_data[:, 0] == image_id, 1
-        ]
 
-        image_path = self.root / "CUB_200_2011" / "images" / self.image_paths[image_id]
+ScalarTypeT = typing.TypeVar("ScalarTypeT", bound=np.generic)
 
-        return (concept, pil_loader(str(image_path)))
+
+def groupby(arr: npt.NDArray[ScalarTypeT], col: int) -> npt.NDArray[ScalarTypeT]:
+    return np.stack(
+        np.split(arr[:, 1], np.unique(arr[:, col], return_index=True)[1][1:])
+    )
