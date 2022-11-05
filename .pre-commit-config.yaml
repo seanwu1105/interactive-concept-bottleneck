@@ -51,8 +51,6 @@ repos:
     hooks:
       - id: poetry-check
         stages: [commit]
-      - id: poetry-lock
-        stages: [commit]
 
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v2.34.0
