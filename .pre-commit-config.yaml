@@ -36,6 +36,16 @@ repos:
         require_serial: true
         stages: [commit]
 
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: .venv/bin/pytest
+        language: script
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
   - repo: https://github.com/python-poetry/poetry
     rev: "1.2.2"
     hooks:
