@@ -51,6 +51,6 @@ def test_cube200_2011_getitem():
 
     for _ in range(100):
         idx = random.randint(0, len(dataset) - 1)
-        attributes, image = dataset[idx]
+        image, attributes = dataset[idx]
         assert attributes.shape == (312,)
         assert image is not None

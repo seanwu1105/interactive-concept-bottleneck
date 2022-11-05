@@ -8,16 +8,24 @@ from torch.utils.data import Dataset
 from torchvision.datasets.folder import pil_loader
 from torchvision.datasets.utils import download_and_extract_archive
 
+I = typing.TypeVar("I")
+
 
 class CUB200_2011(
-    Dataset[tuple[npt.NDArray[np.int_], Image.Image]]
+    Dataset[tuple[I, npt.NDArray[np.int_]]]
 ):  # pylint: disable=invalid-name
     url = "https://data.caltech.edu/records/65de6-vp158/files/CUB_200_2011.tgz"
     md5 = "97eceeb196236b17998738112f37df78"
     root = pathlib.Path(__file__).parent.resolve() / "data"
 
-    def __init__(self, train: bool, download: bool = True):
+    def __init__(
+        self,
+        train: bool,
+        download: bool = True,
+        transform: typing.Callable[[Image.Image], I] = lambda x: x,
+    ):
         super().__init__()
+        self._transform = transform
 
         if download:
             download_and_extract_archive(
@@ -50,9 +58,9 @@ class CUB200_2011(
     def __len__(self):
         return len(self._attributes)
 
-    def __getitem__(self, idx: int) -> tuple[npt.NDArray[np.int_], Image.Image]:
+    def __getitem__(self, idx: int) -> tuple[I, npt.NDArray[np.int_]]:
         image_path = self.root / "CUB_200_2011" / "images" / self._image_paths[idx]
-        return (self._attributes[idx], pil_loader(str(image_path)))
+        return (self._transform(pil_loader(str(image_path))), self._attributes[idx])
 
     @property
     def num_attributes(self) -> int:
