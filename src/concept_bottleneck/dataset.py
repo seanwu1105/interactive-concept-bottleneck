@@ -16,7 +16,7 @@ class CUB200_2011(
     md5 = "97eceeb196236b17998738112f37df78"
     root = pathlib.Path(__file__).parent.resolve() / "data"
 
-    def __init__(self, train: bool = True, download: bool = True):
+    def __init__(self, train: bool, download: bool = True):
         super().__init__()
 
         if download:
@@ -53,6 +53,10 @@ class CUB200_2011(
     def __getitem__(self, idx: int) -> tuple[npt.NDArray[np.int_], Image.Image]:
         image_path = self.root / "CUB_200_2011" / "images" / self._image_paths[idx]
         return (self._attributes[idx], pil_loader(str(image_path)))
+
+    @property
+    def num_attributes(self) -> int:
+        return self._attributes.shape[1]
 
 
 ScalarTypeT = typing.TypeVar("ScalarTypeT", bound=np.generic)

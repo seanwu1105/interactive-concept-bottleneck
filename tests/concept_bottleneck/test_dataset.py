@@ -4,7 +4,7 @@ import numpy as np
 
 from src.concept_bottleneck.dataset import CUB200_2011
 
-CUB200_2011(download=True)
+CUB200_2011(train=True, download=True)
 
 
 def test_cub200_2011_attributes_image_ids_are_sorted():
@@ -47,7 +47,7 @@ def test_cube200_2011_test_size():
 
 
 def test_cube200_2011_getitem():
-    dataset = CUB200_2011(download=False)
+    dataset = CUB200_2011(train=True, download=False)
 
     for _ in range(100):
         idx = random.randint(0, len(dataset) - 1)
