@@ -21,7 +21,7 @@ class CUB200ImageToAttributes(Dataset[tuple[TransformedT, TargetTransformedT]]):
     def __init__(
         self,
         train: bool,
-        download: bool = False,
+        download: bool = True,
         transform: typing.Callable[[Image.Image], TransformedT] = lambda x: x,
         target_transform: typing.Callable[
             [npt.NDArray[np.int_]], TargetTransformedT
@@ -31,7 +31,7 @@ class CUB200ImageToAttributes(Dataset[tuple[TransformedT, TargetTransformedT]]):
         self._transform = transform
         self._target_transform = target_transform
 
-        if download:
+        if download and not (ROOT / "CUB_200_2011").exists():
             download_and_extract_archive(url=URL, download_root=str(ROOT), md5=MD5)
 
         self._train_test_split = load_train_test_split()
@@ -59,17 +59,15 @@ class CUB200AttributesToClass(Dataset[tuple[TransformedT, TargetTransformedT]]):
     def __init__(
         self,
         train: bool,
-        download: bool = False,
+        download: bool = True,
         transform: typing.Callable[[npt.NDArray[np.int_]], TransformedT] = lambda x: x,
-        target_transform: typing.Callable[
-            [npt.NDArray[np.int_]], TargetTransformedT
-        ] = lambda x: x,
+        target_transform: typing.Callable[[np.int_], TargetTransformedT] = lambda x: x,
     ):
         super().__init__()
         self._transform = transform
         self._target_transform = target_transform
 
-        if download:
+        if download and not (ROOT / "CUB_200_2011").exists():
             download_and_extract_archive(url=URL, download_root=str(ROOT), md5=MD5)
 
         self._train_test_split = load_train_test_split()
@@ -90,6 +88,10 @@ class CUB200AttributesToClass(Dataset[tuple[TransformedT, TargetTransformedT]]):
     @property
     def num_attributes(self) -> int:
         return self._attributes.shape[1]
+
+    @property
+    def num_classes(self) -> int:
+        return len(np.unique(self._classes))
 
 
 def load_train_test_split():

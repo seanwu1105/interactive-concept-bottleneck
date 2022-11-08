@@ -2,9 +2,11 @@ import random
 
 import numpy as np
 
-from src.concept_bottleneck.dataset import ROOT, CUB200ImageToAttributes
-
-CUB200ImageToAttributes(train=True, download=True)
+from src.concept_bottleneck.dataset import (
+    ROOT,
+    CUB200AttributesToClass,
+    CUB200ImageToAttributes,
+)
 
 
 def test_cub200_2011_attributes_image_ids_are_sorted():
@@ -39,16 +41,30 @@ def test_cub200_2011_image_class_labels_image_ids_are_sorted():
 
 
 def test_cub200_2011_train_size():
-    dataset = CUB200ImageToAttributes(train=True)
-    assert len(dataset) == 5994
+    assert (
+        len(CUB200ImageToAttributes(train=True))
+        == len(CUB200AttributesToClass(train=True))
+        == 5994
+    )
 
 
-def test_cube200_2011_test_size():
-    dataset = CUB200ImageToAttributes(train=False)
-    assert len(dataset) == 5794
+def test_cub200_2011_test_size():
+    assert (
+        len(CUB200ImageToAttributes(train=False))
+        == len(CUB200AttributesToClass(train=False))
+        == 5794
+    )
 
 
-def test_cube200_2011_getitem():
+def test_cub200_2011_num_classes():
+    assert (
+        CUB200AttributesToClass(train=True).num_classes
+        == CUB200AttributesToClass(train=False).num_classes
+        == 200
+    )
+
+
+def test_cub200_image_to_attributes_getitem():
     dataset = CUB200ImageToAttributes(train=True)
 
     for _ in range(100):
@@ -56,3 +72,13 @@ def test_cube200_2011_getitem():
         image, attributes = dataset[idx]
         assert attributes.shape == (312,)
         assert image is not None
+
+
+def test_cub200_attributes_to_class_getitem():
+    dataset = CUB200AttributesToClass(train=True)
+
+    for _ in range(500):
+        idx = random.randint(0, len(dataset) - 1)
+        attributes, label = dataset[idx]
+        assert attributes.shape == (312,)
+        assert 1 <= label <= 200
