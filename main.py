@@ -79,12 +79,13 @@ def load_model(model: torch.nn.Module, filename: str):
     model.eval()
 
 
-def run_epoch(  # pylint: disable=too-many-locals
+def run_epoch(  # pylint: disable=too-many-locals too-many-arguments
     epochs: int,
     model: torch.nn.Module,
     training_dataloader: DataLoader[tuple[torch.Tensor, torch.Tensor]],
     test_dataloader: DataLoader[tuple[torch.Tensor, torch.Tensor]],
     device: str,
+    name: str = "mlp",
 ) -> tuple[list[float], list[float], list[float], list[float]]:
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
@@ -111,7 +112,7 @@ def run_epoch(  # pylint: disable=too-many-locals
         test_accuracies.append(test_accuracy)
 
         if test_accuracy > 0.85 and t % 50 == 0:
-            save_model(model, f"mlp_model_{t}")
+            save_model(model, f"{name}_model_{t}")
 
         if test_accuracy > 0.98:
             print("Reached 98% accuracy so cancelling training")
@@ -140,6 +141,7 @@ def main(hiddens: list[int]):
         hidden_channels=[*hiddens, training_data.num_classes],
     )
     model = model.to(device)
+    print(model)
 
     train_losses, train_accuracies, test_losses, test_accuracies = run_epoch(
         epochs=5000,
@@ -147,8 +149,9 @@ def main(hiddens: list[int]):
         training_dataloader=training_dataloader,
         test_dataloader=test_dataloader,
         device=device,
+        name=f"mlp_{''.join(map(str, hiddens))}",
     )
-    save_model(model, "mlp_model_final")
+    save_model(model, f"mlp_{''.join(map(str, hiddens))}_model_final")
 
     with open("train_losses.json", "w", encoding="utf-8") as f:
         json.dump(train_losses, f)

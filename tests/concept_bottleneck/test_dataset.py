@@ -8,6 +8,8 @@ from src.concept_bottleneck.dataset import (
     CUB200ImageToAttributes,
 )
 
+CUB200AttributesToClass(train=True)  # download the dataset
+
 
 def test_cub200_2011_attributes_image_ids_are_sorted():
     filepath = ROOT / "CUB_200_2011" / "attributes" / "image_attribute_labels.txt"
