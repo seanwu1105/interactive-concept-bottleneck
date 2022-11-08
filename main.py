@@ -1,22 +1,19 @@
 import json
 import sys
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torchvision.ops import MLP
 
 from src.concept_bottleneck.dataset import CUB200AttributesToClass
 
-training_data: CUB200AttributesToClass[
-    torch.Tensor, torch.Tensor
-] = CUB200AttributesToClass(
+training_data: CUB200AttributesToClass[torch.Tensor, np.int_] = CUB200AttributesToClass(
     train=True,
     transform=torch.from_numpy,  # type: ignore
     target_transform=lambda x: x - 1,  # from 1-indexed to 0-indexed
 )
-test_data: CUB200AttributesToClass[
-    torch.Tensor, torch.Tensor
-] = CUB200AttributesToClass(
+test_data: CUB200AttributesToClass[torch.Tensor, np.int_] = CUB200AttributesToClass(
     train=False,
     transform=torch.from_numpy,  # type: ignore
     target_transform=lambda x: x - 1,  # from 1-indexed to 0-indexed
@@ -24,7 +21,7 @@ test_data: CUB200AttributesToClass[
 
 
 def train(
-    dataloader: DataLoader[tuple[torch.Tensor, torch.Tensor]],
+    dataloader: DataLoader[tuple[torch.Tensor, np.int_]],
     model: torch.nn.Module,
     loss_fn: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
@@ -48,7 +45,7 @@ def train(
 
 
 def test(
-    dataloader: DataLoader[tuple[torch.Tensor, torch.Tensor]],
+    dataloader: DataLoader[tuple[torch.Tensor, np.int_]],
     model: torch.nn.Module,
     loss_fn: torch.nn.Module,
     device: str,
@@ -82,8 +79,8 @@ def load_model(model: torch.nn.Module, filename: str):
 def run_epoch(  # pylint: disable=too-many-locals too-many-arguments
     epochs: int,
     model: torch.nn.Module,
-    training_dataloader: DataLoader[tuple[torch.Tensor, torch.Tensor]],
-    test_dataloader: DataLoader[tuple[torch.Tensor, torch.Tensor]],
+    training_dataloader: DataLoader[tuple[torch.Tensor, np.int_]],
+    test_dataloader: DataLoader[tuple[torch.Tensor, np.int_]],
     device: str,
     name: str = "mlp",
 ) -> tuple[list[float], list[float], list[float], list[float]]:
@@ -139,12 +136,14 @@ def main(hiddens: list[int]):
     model = MLP(
         in_channels=training_data.num_attributes,
         hidden_channels=[*hiddens, training_data.num_classes],
+        inplace=False,
+        dropout=0.5,
     )
     model = model.to(device)
     print(model)
 
     train_losses, train_accuracies, test_losses, test_accuracies = run_epoch(
-        epochs=5000,
+        epochs=2000,
         model=model,
         training_dataloader=training_dataloader,
         test_dataloader=test_dataloader,
