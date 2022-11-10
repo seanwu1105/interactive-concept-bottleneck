@@ -34,7 +34,7 @@ class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.int_], np.int_]]):
     def __getitem__(self, idx: int) -> tuple[npt.NDArray[np.int_], np.int_]:
         return (
             self.image_attribute_labels[idx],
-            self.image_class_labels[idx],
+            self.image_class_labels[idx] - 1,  # convert from 1-indexed to 0-indexed
         )
 
 

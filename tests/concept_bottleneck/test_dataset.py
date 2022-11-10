@@ -36,7 +36,7 @@ class TestCUB200AttributesToClass:
             assert attributes.shape == (NUM_ATTRIBUTES,)
             assert attributes.dtype == np.int_
             assert np.all(np.isin(attributes, (0, 1)))
-            assert class_label == 1
+            assert class_label == 1 - 1
 
     class TestTestDataset:
         @pytest.fixture
@@ -51,7 +51,7 @@ class TestCUB200AttributesToClass:
             assert attributes.shape == (NUM_ATTRIBUTES,)
             assert attributes.dtype == np.int_
             assert np.all(np.isin(attributes, (0, 1)))
-            assert class_label == 1
+            assert class_label == 1 - 1
 
 
 class TestTrainTestSplit:
