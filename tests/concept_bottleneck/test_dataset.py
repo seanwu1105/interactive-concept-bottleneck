@@ -2,7 +2,14 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from src.concept_bottleneck.dataset import ROOT, download_and_extract
+from src.concept_bottleneck.dataset import (
+    DATA_PATH,
+    NUM_ATTRIBUTES,
+    NUM_IMAGES,
+    download_and_extract,
+    load_image_attribute_labels,
+    load_train_test_split,
+)
 
 download_and_extract()
 
@@ -12,11 +19,11 @@ class TestTrainTestSplit:
         def test_sorted(self, image_ids: npt.NDArray[np.int_]):
             assert np.all(np.diff(image_ids) == 1)
 
-        def test_start_at_1(self, image_ids: npt.NDArray[np.int_]):
+        def test_start_at(self, image_ids: npt.NDArray[np.int_]):
             assert image_ids[0] == 1
 
-        def test_end_at_11788(self, image_ids: npt.NDArray[np.int_]):
-            assert image_ids[-1] == 11788
+        def test_end_at(self, image_ids: npt.NDArray[np.int_]):
+            assert image_ids[-1] == NUM_IMAGES
 
         @pytest.fixture
         def image_ids(self, train_test_split: npt.NDArray[np.int_]):
@@ -32,5 +39,76 @@ class TestTrainTestSplit:
 
     @pytest.fixture
     def train_test_split(self):
-        filepath = ROOT / "CUB_200_2011" / "train_test_split.txt"
+        filepath = DATA_PATH / "train_test_split.txt"
         return np.loadtxt(filepath, dtype=np.int_)
+
+
+def test_load_train_test_split():
+    train_test_split = load_train_test_split()
+    assert train_test_split.shape == (NUM_IMAGES,)
+    assert train_test_split.dtype == np.int_
+    assert np.all(np.isin(train_test_split, (0, 1)))
+
+
+class TestImageAttributeLabels:
+    class TestImageIds:
+        def test_sorted(self, image_ids: npt.NDArray[np.int_]):
+            for image_id in range(1, NUM_IMAGES + 1):
+                for attribute_id in range(1, NUM_ATTRIBUTES + 1):
+                    assert (
+                        image_ids[(image_id - 1) * NUM_ATTRIBUTES + (attribute_id - 1)]
+                        == image_id
+                    )
+
+        def test_shape(self, image_ids: npt.NDArray[np.int_]):
+            assert image_ids.shape == (NUM_IMAGES * NUM_ATTRIBUTES,)
+
+        @pytest.fixture
+        def image_ids(self, image_attribute_labels: npt.NDArray[np.int_]):
+            return image_attribute_labels[:, 0]
+
+    class TestAttributeIds:
+        def test_sorted(self, attribute_ids: npt.NDArray[np.int_]):
+            for image_id in range(1, NUM_IMAGES + 1):
+                for attribute_id in range(1, NUM_ATTRIBUTES + 1):
+                    assert (
+                        attribute_ids[
+                            (image_id - 1) * NUM_ATTRIBUTES + (attribute_id - 1)
+                        ]
+                        == attribute_id
+                    )
+
+        def test_shape(self, attribute_ids: npt.NDArray[np.int_]):
+            assert attribute_ids.shape == (NUM_IMAGES * NUM_ATTRIBUTES,)
+
+        @pytest.fixture
+        def attribute_ids(self, image_attribute_labels: npt.NDArray[np.int_]):
+            return image_attribute_labels[:, 1]
+
+    class TestLabels:
+        def test_contain_binary_only(self, labels: npt.NDArray[np.int_]):
+            assert np.all(np.isin(labels, (0, 1)))
+
+        def test_shape(self, labels: npt.NDArray[np.int_]):
+            assert labels.shape == (NUM_IMAGES * NUM_ATTRIBUTES,)
+
+        @pytest.fixture
+        def labels(self, image_attribute_labels: npt.NDArray[np.int_]):
+            return image_attribute_labels[:, 2]
+
+    @pytest.fixture
+    def image_attribute_labels(self):
+        filepath = DATA_PATH / "attributes" / "image_attribute_labels.txt"
+        return np.loadtxt(filepath, usecols=(0, 1, 2), dtype=np.int_)
+
+
+def test_load_image_attribute_labels():
+    image_attribute_labels = load_image_attribute_labels()
+    assert image_attribute_labels.shape == (NUM_IMAGES, NUM_ATTRIBUTES)
+    assert image_attribute_labels.dtype == np.int_
+    assert np.all(np.isin(image_attribute_labels, (0, 1)))
+
+    # Pick some random images and attributes to check that the labels are correct.
+    assert image_attribute_labels[(2410 - 1), (30 - 1)] == 1
+    assert image_attribute_labels[(9487 - 1), (245 - 1)] == 1
+    assert image_attribute_labels[(11662 - 1), (26 - 1)] == 1
