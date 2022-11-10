@@ -5,9 +5,11 @@ import pytest
 from src.concept_bottleneck.dataset import (
     DATA_PATH,
     NUM_ATTRIBUTES,
+    NUM_CLASSES,
     NUM_IMAGES,
     download_and_extract,
     load_image_attribute_labels,
+    load_image_class_labels,
     load_train_test_split,
 )
 
@@ -36,6 +38,9 @@ class TestTrainTestSplit:
         @pytest.fixture
         def splits(self, train_test_split: npt.NDArray[np.int_]):
             return train_test_split[:, 1]
+
+    def test_shape(self, train_test_split: npt.NDArray[np.int_]):
+        assert train_test_split.shape == (NUM_IMAGES, 2)
 
     @pytest.fixture
     def train_test_split(self):
@@ -112,3 +117,42 @@ def test_load_image_attribute_labels():
     assert image_attribute_labels[(2410 - 1), (30 - 1)] == 1
     assert image_attribute_labels[(9487 - 1), (245 - 1)] == 1
     assert image_attribute_labels[(11662 - 1), (26 - 1)] == 1
+
+
+class TestImageClassLabels:
+    class TestImageIds:
+        def test_sorted(self, image_ids: npt.NDArray[np.int_]):
+            assert np.all(np.diff(image_ids) == 1)
+
+        def test_start_at(self, image_ids: npt.NDArray[np.int_]):
+            assert image_ids[0] == 1
+
+        def test_end_at(self, image_ids: npt.NDArray[np.int_]):
+            assert image_ids[-1] == NUM_IMAGES
+
+        @pytest.fixture
+        def image_ids(self, image_class_labels: npt.NDArray[np.int_]):
+            return image_class_labels[:, 0]
+
+    class TestClasses:
+        def test_contain_class_only(self, classes: npt.NDArray[np.int_]):
+            assert np.all((classes >= 1) & (classes <= NUM_CLASSES))
+
+        @pytest.fixture
+        def classes(self, image_class_labels: npt.NDArray[np.int_]):
+            return image_class_labels[:, 1]
+
+    def test_shape(self, image_class_labels: npt.NDArray[np.int_]):
+        assert image_class_labels.shape == (NUM_IMAGES, 2)
+
+    @pytest.fixture
+    def image_class_labels(self):
+        filepath = DATA_PATH / "image_class_labels.txt"
+        return np.loadtxt(filepath, dtype=np.int_)
+
+
+def test_load_image_class_labels():
+    image_class_labels = load_image_class_labels()
+    assert image_class_labels.shape == (NUM_IMAGES,)
+    assert image_class_labels.dtype == np.int_
+    assert np.all((image_class_labels >= 1) & (image_class_labels <= NUM_CLASSES))

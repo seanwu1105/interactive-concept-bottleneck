@@ -28,3 +28,8 @@ def load_image_attribute_labels():
     filepath = DATA_PATH / "attributes" / "image_attribute_labels.txt"
     labels = np.loadtxt(filepath, usecols=2, dtype=np.int_)
     return labels.reshape((NUM_IMAGES, NUM_ATTRIBUTES))
+
+
+def load_image_class_labels():
+    filepath = DATA_PATH / "image_class_labels.txt"
+    return np.loadtxt(filepath, usecols=1, dtype=np.int_)
