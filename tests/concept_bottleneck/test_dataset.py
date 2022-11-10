@@ -16,6 +16,11 @@ from src.concept_bottleneck.dataset import (
 download_and_extract()
 
 
+def test_download_and_extract():
+    download_and_extract()
+    assert DATA_PATH.exists()
+
+
 class TestTrainTestSplit:
     class TestImageIds:
         def test_sorted(self, image_ids: npt.NDArray[np.int_]):
