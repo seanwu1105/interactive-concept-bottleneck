@@ -7,6 +7,7 @@ from src.concept_bottleneck.dataset import (
     NUM_ATTRIBUTES,
     NUM_CLASSES,
     NUM_IMAGES,
+    CUB200AttributesToClass,
     download_and_extract,
     load_image_attribute_labels,
     load_image_class_labels,
@@ -19,6 +20,38 @@ download_and_extract()
 def test_download_and_extract():
     download_and_extract()
     assert DATA_PATH.exists()
+
+
+class TestCUB200AttributesToClass:
+    class TestTrainingDataset:
+        @pytest.fixture
+        def dataset(self):
+            return CUB200AttributesToClass(train=True)
+
+        def test_len(self, dataset: CUB200AttributesToClass):
+            assert len(dataset) == 5994
+
+        def test_getitem(self, dataset: CUB200AttributesToClass):
+            attributes, class_label = dataset[0]
+            assert attributes.shape == (NUM_ATTRIBUTES,)
+            assert attributes.dtype == np.int_
+            assert np.all(np.isin(attributes, (0, 1)))
+            assert class_label == 1
+
+    class TestTestDataset:
+        @pytest.fixture
+        def dataset(self):
+            return CUB200AttributesToClass(train=False)
+
+        def test_len(self, dataset: CUB200AttributesToClass):
+            assert len(dataset) == 5794
+
+        def test_getitem(self, dataset: CUB200AttributesToClass):
+            attributes, class_label = dataset[0]
+            assert attributes.shape == (NUM_ATTRIBUTES,)
+            assert attributes.dtype == np.int_
+            assert np.all(np.isin(attributes, (0, 1)))
+            assert class_label == 1
 
 
 class TestTrainTestSplit:
