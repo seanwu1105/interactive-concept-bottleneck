@@ -8,6 +8,7 @@ from src.concept_bottleneck.dataset import (
     NUM_CLASSES,
     NUM_IMAGES,
     CUB200AttributesToClass,
+    calibrate_image_attribute_labels,
     download_and_extract,
     load_image_attribute_labels,
     load_image_class_labels,
@@ -34,8 +35,8 @@ class TestCUB200AttributesToClass:
         def test_getitem(self, dataset: CUB200AttributesToClass):
             attributes, class_label = dataset[0]
             assert attributes.shape == (NUM_ATTRIBUTES,)
-            assert attributes.dtype == np.int_
-            assert np.all(np.isin(attributes, (0, 1)))
+            assert attributes.dtype == np.float64
+            assert np.all((attributes >= 0) & (attributes <= 1))
             assert class_label == 1 - 1
 
     class TestTestDataset:
@@ -49,8 +50,8 @@ class TestCUB200AttributesToClass:
         def test_getitem(self, dataset: CUB200AttributesToClass):
             attributes, class_label = dataset[0]
             assert attributes.shape == (NUM_ATTRIBUTES,)
-            assert attributes.dtype == np.int_
-            assert np.all(np.isin(attributes, (0, 1)))
+            assert attributes.dtype == np.float64
+            assert np.all((attributes >= 0) & (attributes <= 1))
             assert class_label == 1 - 1
 
 
@@ -139,17 +140,37 @@ class TestImageAttributeLabels:
         def labels(self, image_attribute_labels: npt.NDArray[np.int_]):
             return image_attribute_labels[:, 2]
 
+    class TestCertainties:
+        def test_contain_certainty_only(self, certainty: npt.NDArray[np.int_]):
+            assert np.all(np.isin(certainty, (1, 2, 3, 4)))
+
+        def test_shape(self, certainty: npt.NDArray[np.int_]):
+            assert certainty.shape == (NUM_IMAGES * NUM_ATTRIBUTES,)
+
+        @pytest.fixture
+        def certainty(self, image_attribute_labels: npt.NDArray[np.int_]):
+            return image_attribute_labels[:, 3]
+
+    def test_shape(self, image_attribute_labels: npt.NDArray[np.int_]):
+        assert image_attribute_labels.shape == (NUM_IMAGES * NUM_ATTRIBUTES, 4)
+
     @pytest.fixture
     def image_attribute_labels(self):
         filepath = DATA_PATH / "attributes" / "image_attribute_labels.txt"
-        return np.loadtxt(filepath, usecols=(0, 1, 2), dtype=np.int_)
+        return np.loadtxt(filepath, usecols=(0, 1, 2, 3), dtype=np.int_)
+
+
+def test_calibrate_image_attribute_labels():
+    arr = np.array([[0, 1], [0, 2], [0, 3], [0, 4], [1, 1], [1, 2], [1, 3], [1, 4]])
+    calibrated = calibrate_image_attribute_labels(arr[:, 0], arr[:, 1])
+    assert np.all(calibrated == np.array([0, 0.5, 0.25, 0, 0, 0.5, 0.75, 1]))
 
 
 def test_load_image_attribute_labels():
     image_attribute_labels = load_image_attribute_labels()
     assert image_attribute_labels.shape == (NUM_IMAGES, NUM_ATTRIBUTES)
-    assert image_attribute_labels.dtype == np.int_
-    assert np.all(np.isin(image_attribute_labels, (0, 1)))
+    assert image_attribute_labels.dtype == np.float64
+    assert np.all((image_attribute_labels >= 0) & (image_attribute_labels <= 1))
 
     # Pick some random images and attributes to check that the labels are correct.
     assert image_attribute_labels[(2410 - 1), (30 - 1)] == 1

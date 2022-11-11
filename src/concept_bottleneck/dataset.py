@@ -16,7 +16,7 @@ NUM_ATTRIBUTES = 312
 NUM_CLASSES = 200
 
 
-class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.int_], np.int_]]):
+class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.float64], np.int_]]):
     def __init__(self, train: bool, download: bool = True):
         super().__init__()
         if download:
@@ -31,7 +31,7 @@ class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.int_], np.int_]]):
     def __len__(self):
         return len(self.image_class_labels)
 
-    def __getitem__(self, idx: int) -> tuple[npt.NDArray[np.int_], np.int_]:
+    def __getitem__(self, idx: int) -> tuple[npt.NDArray[np.float64], np.int_]:
         return (
             self.image_attribute_labels[idx],
             self.image_class_labels[idx] - 1,  # convert from 1-indexed to 0-indexed
@@ -50,8 +50,24 @@ def load_train_test_split():
 
 def load_image_attribute_labels():
     filepath = DATA_PATH / "attributes" / "image_attribute_labels.txt"
-    labels = np.loadtxt(filepath, usecols=2, dtype=np.int_)
+    data = np.loadtxt(filepath, usecols=(2, 3), dtype=np.int_)
+    labels = calibrate_image_attribute_labels(data[:, 0], data[:, 1])
     return labels.reshape((NUM_IMAGES, NUM_ATTRIBUTES))
+
+
+def calibrate_image_attribute_labels(
+    labels: npt.NDArray[np.int_], certainties: npt.NDArray[np.int_]
+):
+    # Calibrate labels according to certainty:
+    # 1: not visible, 2: guessing, 3: probably, 4: definitely
+    convert_map = {0: {1: 0, 2: 0.5, 3: 0.25, 4: 0}, 1: {1: 0, 2: 0.5, 3: 0.75, 4: 1}}
+    return np.fromiter(
+        (
+            convert_map[label][certainty]
+            for label, certainty in zip(labels, certainties)
+        ),
+        dtype=np.float64,
+    )
 
 
 def load_image_class_labels():
