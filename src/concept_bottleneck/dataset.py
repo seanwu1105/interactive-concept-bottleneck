@@ -16,7 +16,7 @@ NUM_ATTRIBUTES = 312
 NUM_CLASSES = 200
 
 
-class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.float64], np.int_]]):
+class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.float32], np.int_]]):
     def __init__(self, train: bool, download: bool = True):
         super().__init__()
         if download:
@@ -31,7 +31,7 @@ class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.float64], np.int_]]):
     def __len__(self):
         return len(self.image_class_labels)
 
-    def __getitem__(self, idx: int) -> tuple[npt.NDArray[np.float64], np.int_]:
+    def __getitem__(self, idx: int) -> tuple[npt.NDArray[np.float32], np.int_]:
         return (
             self.image_attribute_labels[idx],
             self.image_class_labels[idx] - 1,  # convert from 1-indexed to 0-indexed
@@ -60,13 +60,16 @@ def calibrate_image_attribute_labels(
 ):
     # Calibrate labels according to certainty:
     # 1: not visible, 2: guessing, 3: probably, 4: definitely
-    convert_map = {0: {1: 0, 2: 0.5, 3: 0.25, 4: 0}, 1: {1: 0, 2: 0.5, 3: 0.75, 4: 1}}
+    convert_map = {
+        0: {1: 0.25, 2: 0.5, 3: 0.25, 4: 0},
+        1: {1: 0, 2: 0.5, 3: 0.75, 4: 1},
+    }
     return np.fromiter(
         (
             convert_map[label][certainty]
             for label, certainty in zip(labels, certainties)
         ),
-        dtype=np.float64,
+        dtype=np.float32,
     )
 
 

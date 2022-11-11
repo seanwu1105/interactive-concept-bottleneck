@@ -35,7 +35,7 @@ class TestCUB200AttributesToClass:
         def test_getitem(self, dataset: CUB200AttributesToClass):
             attributes, class_label = dataset[0]
             assert attributes.shape == (NUM_ATTRIBUTES,)
-            assert attributes.dtype == np.float64
+            assert attributes.dtype == np.float32
             assert np.all((attributes >= 0) & (attributes <= 1))
             assert class_label == 1 - 1
 
@@ -50,7 +50,7 @@ class TestCUB200AttributesToClass:
         def test_getitem(self, dataset: CUB200AttributesToClass):
             attributes, class_label = dataset[0]
             assert attributes.shape == (NUM_ATTRIBUTES,)
-            assert attributes.dtype == np.float64
+            assert attributes.dtype == np.float32
             assert np.all((attributes >= 0) & (attributes <= 1))
             assert class_label == 1 - 1
 
@@ -163,13 +163,13 @@ class TestImageAttributeLabels:
 def test_calibrate_image_attribute_labels():
     arr = np.array([[0, 1], [0, 2], [0, 3], [0, 4], [1, 1], [1, 2], [1, 3], [1, 4]])
     calibrated = calibrate_image_attribute_labels(arr[:, 0], arr[:, 1])
-    assert np.all(calibrated == np.array([0, 0.5, 0.25, 0, 0, 0.5, 0.75, 1]))
+    assert np.all(calibrated == np.array([0.25, 0.5, 0.25, 0, 0, 0.5, 0.75, 1]))
 
 
 def test_load_image_attribute_labels():
     image_attribute_labels = load_image_attribute_labels()
     assert image_attribute_labels.shape == (NUM_IMAGES, NUM_ATTRIBUTES)
-    assert image_attribute_labels.dtype == np.float64
+    assert image_attribute_labels.dtype == np.float32
     assert np.all((image_attribute_labels >= 0) & (image_attribute_labels <= 1))
 
     # Pick some random images and attributes to check that the labels are correct.
