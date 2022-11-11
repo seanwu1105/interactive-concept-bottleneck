@@ -8,10 +8,12 @@ from src.concept_bottleneck.dataset import (
     NUM_CLASSES,
     NUM_IMAGES,
     CUB200AttributesToClass,
+    CUB200ImageToAttributes,
     calibrate_image_attribute_labels,
     download_and_extract,
     load_image_attribute_labels,
     load_image_class_labels,
+    load_image_paths,
     load_train_test_split,
 )
 
@@ -21,6 +23,34 @@ download_and_extract()
 def test_download_and_extract():
     download_and_extract()
     assert DATA_PATH.exists()
+
+
+class TestCUB200ImageToAttributes:
+    class TestTrainingDataset:
+        @pytest.fixture
+        def dataset(self):
+            return CUB200ImageToAttributes(train=True)
+
+        def test_len(self, dataset: CUB200ImageToAttributes):
+            assert len(dataset) == 5994
+
+        def test_getitem(self, dataset: CUB200ImageToAttributes):
+            image, attributes = dataset[0]
+            assert image.shape == (3, 299, 299)
+            assert attributes.shape == (NUM_ATTRIBUTES,)
+
+    class TestTestDataset:
+        @pytest.fixture
+        def dataset(self):
+            return CUB200ImageToAttributes(train=False)
+
+        def test_len(self, dataset: CUB200ImageToAttributes):
+            assert len(dataset) == 5794
+
+        def test_getitem(self, dataset: CUB200ImageToAttributes):
+            image, attributes = dataset[0]
+            assert image.shape == (3, 299, 299)
+            assert attributes.shape == (NUM_ATTRIBUTES,)
 
 
 class TestCUB200AttributesToClass:
@@ -215,3 +245,42 @@ def test_load_image_class_labels():
     assert image_class_labels.shape == (NUM_IMAGES,)
     assert image_class_labels.dtype == np.int_
     assert np.all((image_class_labels >= 1) & (image_class_labels <= NUM_CLASSES))
+
+
+class TestImagePaths:
+    class TestImageIds:
+        def test_sorted(self, image_ids: list[int]):
+            assert np.all(np.diff(image_ids) == 1)
+
+        def test_start_at(self, image_ids: list[int]):
+            assert image_ids[0] == 1
+
+        def test_end_at(self, image_ids: list[int]):
+            assert image_ids[-1] == NUM_IMAGES
+
+        @pytest.fixture
+        def image_ids(self, image_paths: list[tuple[int, str]]):
+            return [image_id for image_id, _ in image_paths]
+
+    def test_shape(self, image_paths: list[tuple[int, str]]):
+        assert len(image_paths) == NUM_IMAGES
+
+    @pytest.fixture
+    def image_paths(self):
+        filepath = DATA_PATH / "images.txt"
+
+        paths: list[tuple[int, str]] = []
+        with open(filepath, encoding="utf-8") as f:
+            for line in f.readlines():
+                image_id, path = line.split()
+                paths.append((int(image_id), path))
+        return paths
+
+
+def test_load_image_paths():
+    image_paths = load_image_paths()
+    assert len(image_paths) == NUM_IMAGES
+    assert (
+        image_paths[0]
+        == "001.Black_footed_Albatross/Black_Footed_Albatross_0046_18.jpg"
+    )

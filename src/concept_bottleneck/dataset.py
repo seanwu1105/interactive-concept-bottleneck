@@ -1,9 +1,14 @@
 import os
 import pathlib
+import typing
 
 import numpy as np
 import numpy.typing as npt
+import torch
+from PIL import Image
 from torch.utils.data import Dataset
+from torchvision import transforms
+from torchvision.datasets.folder import pil_loader
 from torchvision.datasets.utils import download_and_extract_archive
 
 URL = "https://data.caltech.edu/records/65de6-vp158/files/CUB_200_2011.tgz"
@@ -14,6 +19,47 @@ DATA_PATH = ROOT / pathlib.Path(os.path.basename(URL)).stem
 NUM_IMAGES = 11788
 NUM_ATTRIBUTES = 312
 NUM_CLASSES = 200
+
+
+class CUB200ImageToAttributes(Dataset[tuple[torch.Tensor, npt.NDArray[np.float32]]]):
+    def __init__(self, train: bool, download: bool = True):
+        super().__init__()
+        if download:
+            download_and_extract()
+
+        train_test_split = load_train_test_split()
+        self.image_paths = tuple(
+            path
+            for is_train, path in zip(train_test_split, load_image_paths())
+            if is_train == train
+        )
+        self.image_attribute_labels = load_image_attribute_labels()[
+            train_test_split == train
+        ]
+
+        assert len(self.image_paths) == len(self.image_attribute_labels)
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, npt.NDArray[np.float32]]:
+        image_path = DATA_PATH / "images" / self.image_paths[idx]
+        image = pil_loader(str(image_path))
+
+        preprocess: typing.Callable[[Image.Image], torch.Tensor] = transforms.Compose(
+            [
+                transforms.Resize(299),
+                transforms.CenterCrop(299),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
+                ),
+            ]
+        )
+
+        attributes = self.image_attribute_labels[idx]
+        return preprocess(image), attributes  # type: ignore
 
 
 class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.float32], np.int_]]):
@@ -71,6 +117,12 @@ def calibrate_image_attribute_labels(
         ),
         dtype=np.float32,
     )
+
+
+def load_image_paths():
+    filepath = DATA_PATH / "images.txt"
+    with open(filepath, encoding="utf-8") as f:
+        return [line.split()[1] for line in f.readlines()]
 
 
 def load_image_class_labels():
