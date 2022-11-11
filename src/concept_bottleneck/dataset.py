@@ -61,8 +61,8 @@ def calibrate_image_attribute_labels(
     # Calibrate labels according to certainty:
     # 1: not visible, 2: guessing, 3: probably, 4: definitely
     convert_map = {
-        0: {1: 0.25, 2: 0.5, 3: 0.25, 4: 0},
-        1: {1: 0, 2: 0.5, 3: 0.75, 4: 1},
+        0: {1: 0.5, 2: 0.25, 3: 0, 4: 0},
+        1: {1: 0.5, 2: 0.75, 3: 1, 4: 1},
     }
     return np.fromiter(
         (

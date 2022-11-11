@@ -163,7 +163,7 @@ class TestImageAttributeLabels:
 def test_calibrate_image_attribute_labels():
     arr = np.array([[0, 1], [0, 2], [0, 3], [0, 4], [1, 1], [1, 2], [1, 3], [1, 4]])
     calibrated = calibrate_image_attribute_labels(arr[:, 0], arr[:, 1])
-    assert np.all(calibrated == np.array([0.25, 0.5, 0.25, 0, 0, 0.5, 0.75, 1]))
+    assert np.all(calibrated == np.array([0.5, 0.25, 0, 0, 0.5, 0.75, 1, 1]))
 
 
 def test_load_image_attribute_labels():
