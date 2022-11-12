@@ -1,9 +1,13 @@
+# pylint: disable=unused-import
+
 import sys
 
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtWidgets import QApplication
 
 if __name__ == "__main__":
+    from src.ui import rc_resources  # pyright: reportUnusedImport=false
+
     app = QApplication(sys.argv)
     engine = QQmlApplicationEngine()
     # TODO: use rcc # pylint: disable=fixme
