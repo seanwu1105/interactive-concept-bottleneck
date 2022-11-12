@@ -20,10 +20,29 @@ NUM_IMAGES = 11788
 NUM_ATTRIBUTES = 312
 NUM_CLASSES = 200
 
+DEFAULT_TRANSFORM = transforms.Compose(
+    [
+        transforms.Resize(299),
+        transforms.CenterCrop(299),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225],
+        ),
+    ]
+)
+
 
 class CUB200ImageToAttributes(Dataset[tuple[torch.Tensor, npt.NDArray[np.float32]]]):
-    def __init__(self, train: bool, download: bool = True):
+    def __init__(
+        self,
+        train: bool,
+        download: bool = True,
+        transform: typing.Callable[[Image.Image], torch.Tensor] = DEFAULT_TRANSFORM,
+    ):
         super().__init__()
+        self.transform = transform
+
         if download:
             download_and_extract()
 
@@ -46,20 +65,8 @@ class CUB200ImageToAttributes(Dataset[tuple[torch.Tensor, npt.NDArray[np.float32
         image_path = DATA_PATH / "images" / self.image_paths[idx]
         image = pil_loader(str(image_path))
 
-        preprocess: typing.Callable[[Image.Image], torch.Tensor] = transforms.Compose(
-            [
-                transforms.Resize(299),
-                transforms.CenterCrop(299),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225],
-                ),
-            ]
-        )
-
         attributes = self.image_attribute_labels[idx]
-        return preprocess(image), attributes  # type: ignore
+        return self.transform(image), attributes
 
 
 class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.float32], np.int_]]):
