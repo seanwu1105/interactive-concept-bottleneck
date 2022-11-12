@@ -114,9 +114,13 @@ def calibrate_image_attribute_labels(
     # Calibrate labels according to certainty:
     # 1: not visible, 2: guessing, 3: probably, 4: definitely
     convert_map = {
-        0: {1: 0, 2: 0, 3: 0, 4: 0},  # All labels should be less than 0.5
-        1: {1: 1, 2: 1, 3: 1, 4: 1},  # All labels should be greater than 0.5
+        0: {1: 0, 2: 0, 3: 0, 4: 0},
+        1: {1: 1, 2: 1, 3: 1, 4: 1},
     }
+
+    assert all(0 <= converted < 0.5 for converted in convert_map[0].values())
+    assert all(0.5 <= converted <= 1 for converted in convert_map[1].values())
+
     return np.fromiter(
         (
             convert_map[label][certainty]
