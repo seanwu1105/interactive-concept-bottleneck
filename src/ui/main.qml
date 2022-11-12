@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt.labs.qmlmodels
+import QtQuick.Dialogs
 
 ApplicationWindow {
     id: app
@@ -43,6 +43,15 @@ ApplicationWindow {
             Button {
                 Layout.fillWidth: true
                 text: "Set Image"
+                onClicked: fileDialog.open()
+
+                FileDialog {
+                    id: fileDialog
+                    nameFilters: [ "Images (*.jpeg *.jpg)" ]
+                    onAccepted: {
+                        console.log("You chose: " + fileDialog.selectedFile)
+                    }
+                }
             }
 
             Button {
