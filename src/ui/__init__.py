@@ -14,6 +14,9 @@ QML_IMPORT_MAJOR_VERSION = 1
 
 class State(TypedDict):
     imagePath: str
+    pagedConcepts: list[list[str | float]]
+    selectedConceptPage: int
+    numRowPerPage: int
 
 
 @QmlElement
@@ -22,7 +25,12 @@ class Bridge(QObject):
 
     def __init__(self, parent: QObject | None = None):
         super().__init__(parent)
-        self._state: State = {"imagePath": ""}
+        self._state: State = {
+            "imagePath": "",
+            "pagedConcepts": [[]],
+            "selectedConceptPage": 0,
+            "numRowPerPage": 8,
+        }
 
         self.image_to_attributes_model = ImageToAttributesModel()
 
@@ -42,7 +50,40 @@ class Bridge(QObject):
 
     @Slot()
     def predict(self):
-        print(self.image_to_attributes_model.predict(self._state["imagePath"]))
+        concepts_with_prob = self.image_to_attributes_model.predict(
+            self._state["imagePath"]
+        )
+
+        paged_concepts: list[list[str | float]] = [[]]
+        for idx, (concept, prob) in enumerate(concepts_with_prob.items()):
+            page = idx // self._state["numRowPerPage"]
+            if page >= len(paged_concepts):
+                paged_concepts.append([])
+            paged_concepts[page].extend((concept, prob))
+
+        self._set_state({**self._state, "pagedConcepts": paged_concepts})
+
+    @Slot()
+    def nextConceptPage(self):
+        if self._state["selectedConceptPage"] + 1 >= len(self._state["pagedConcepts"]):
+            return
+        self._set_state(
+            {
+                **self._state,
+                "selectedConceptPage": self._state["selectedConceptPage"] + 1,
+            }
+        )
+
+    @Slot()
+    def previousConceptPage(self):
+        if self._state["selectedConceptPage"] == 0:
+            return
+        self._set_state(
+            {
+                **self._state,
+                "selectedConceptPage": self._state["selectedConceptPage"] - 1,
+            }
+        )
 
     @Slot()
     def rerun(self):

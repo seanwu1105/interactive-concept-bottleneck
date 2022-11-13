@@ -71,7 +71,7 @@ ApplicationWindow {
             Layout.fillWidth: true
 
             ColumnLayout {
-                Layout.fillWidth: true
+                Layout.preferredWidth: parent.width / 2
                 Layout.margins: 12
 
                 Label {
@@ -106,14 +106,15 @@ ApplicationWindow {
 
                     Repeater {
                         model: [
-                            "Concept 1", 0.5, "Concept 2", 0.3, "Concept 3", 0.2, "Concept 3", 0.2, "Concept 3", 0.2, "Concept 3", 0.2, "Concept 3", 0.2, "Concept 3", 0.2, "Concept 3", 0.2, "Concept 3", 0.2,
+                            ...app.state.pagedConcepts[app.state.selectedConceptPage],
+                            ...new Array(app.state.numRowPerPage * 2 - app.state.pagedConcepts[app.state.selectedConceptPage].length).fill("-")
                         ]
                         Label {
                             id: conceptLabel
-                            required property string modelData
+                            required property var modelData
                             required property int index
                             Layout.fillWidth: true
-                            text: modelData
+                            text: typeof(modelData) === "number" ? `${(modelData * 100).toFixed(2)}%` : modelData
                             horizontalAlignment: Text.AlignHCenter
                             padding: 4
 
@@ -136,23 +137,27 @@ ApplicationWindow {
 
                         Button {
                             text: "<"
+                            enabled: app.state.selectedConceptPage > 0
+                            onClicked: bridge.previousConceptPage()
                         }
 
                         Label {
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignHCenter
-                            text: "1/10"
+                            text: `${app.state.selectedConceptPage + 1} / ${Object.keys(app.state.pagedConcepts).length}`
                         }
 
                         Button {
                             text: ">"
+                            enabled: app.state.selectedConceptPage < Object.keys(app.state.pagedConcepts).length - 1
+                            onClicked: bridge.nextConceptPage()
                         }
                     }
                 }
             }
 
             ColumnLayout {
-                Layout.fillWidth: true
+                Layout.preferredWidth: parent.width / 2
                 Layout.margins: 12
 
                 Label {
@@ -186,9 +191,7 @@ ApplicationWindow {
                     }
 
                     Repeater {
-                        model: [
-                            "Species 1", 0.5, "Species 2", 0.3, "Species 3", 0.2, "Species 3", 0.2, "Species 3", 0.2, "Species 3", 0.2, "Species 3", 0.2, "Species 3", 0.2, "Species 3", 0.2, "Species 3", 0.2,
-                        ]
+                        model: ["1", 1, "2", 2, "3", 3, "4", 4, "5", 5, "6", 6, "7", 7, "8", 8]
                         Label {
                             id: speciesLabel
                             required property string modelData
@@ -222,7 +225,7 @@ ApplicationWindow {
                         Label {
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignHCenter
-                            text: "1/10"
+                            text: "1/25"
                         }
 
                         Button {
