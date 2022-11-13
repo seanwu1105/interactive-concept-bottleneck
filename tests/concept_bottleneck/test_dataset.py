@@ -12,6 +12,7 @@ from src.concept_bottleneck.dataset import (
     calibrate_image_attribute_labels,
     download_and_extract,
     load_attribute_names,
+    load_class_names,
     load_image_attribute_labels,
     load_image_class_labels,
     load_image_paths,
@@ -321,3 +322,39 @@ def test_load_attribute_names():
     attribute_names = load_attribute_names()
     assert len(attribute_names) == NUM_ATTRIBUTES
     assert attribute_names[0] == "has_bill_shape::curved_(up_or_down)"
+
+
+class TestClassNames:
+    class TestClassIds:
+        def test_sorted(self, class_ids: list[int]):
+            assert np.all(np.diff(class_ids) == 1)
+
+        def test_start_at(self, class_ids: list[int]):
+            assert class_ids[0] == 1
+
+        def test_end_at(self, class_ids: list[int]):
+            assert class_ids[-1] == NUM_CLASSES
+
+        @pytest.fixture
+        def class_ids(self, class_names: list[tuple[int, str]]):
+            return [class_id for class_id, _ in class_names]
+
+    def test_shape(self, class_names: list[tuple[int, str]]):
+        assert len(class_names) == NUM_CLASSES
+
+    @pytest.fixture
+    def class_names(self):
+        filepath = DATA_PATH / "classes.txt"
+
+        paths: list[tuple[int, str]] = []
+        with open(filepath, encoding="utf-8") as f:
+            for line in f.readlines():
+                class_id, path = line.split()
+                paths.append((int(class_id), path))
+        return paths
+
+
+def test_load_class_names():
+    class_names = load_class_names()
+    assert len(class_names) == NUM_CLASSES
+    assert class_names[0] == "001.Black_footed_Albatross"

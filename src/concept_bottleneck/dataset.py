@@ -147,3 +147,9 @@ def load_attribute_names():
     filepath = DATA_PATH.parent / "attributes.txt"
     with open(filepath, encoding="utf-8") as f:
         return [line.split()[1] for line in f.readlines()]
+
+
+def load_class_names():
+    filepath = DATA_PATH / "classes.txt"
+    with open(filepath, encoding="utf-8") as f:
+        return [line.split()[1] for line in f.readlines()]
