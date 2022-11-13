@@ -6,6 +6,7 @@ from typing import TypedDict
 from PySide6.QtCore import Property, QObject, Signal, Slot
 from PySide6.QtQml import QmlElement
 
+from src.concept_bottleneck.dataset import load_attribute_names
 from src.concept_bottleneck.predict import (
     AttributesToClassModel,
     ImageToAttributesModel,
@@ -62,8 +63,12 @@ class Bridge(QObject):
             self._state["imagePath"]
         )
 
+        sorted_concepts_with_prob = dict(
+            sorted(concepts_with_prob.items(), key=lambda x: x[1], reverse=True)
+        )
+
         paged_concepts: list[list[str | float]] = [[]]
-        for idx, (concept, prob) in enumerate(concepts_with_prob.items()):
+        for idx, (concept, prob) in enumerate(sorted_concepts_with_prob.items()):
             page = idx // self._state["numRowPerPage"]
             if page >= len(paged_concepts):
                 paged_concepts.append([])
@@ -71,18 +76,7 @@ class Bridge(QObject):
 
         self._set_state({**self._state, "pagedConcepts": paged_concepts})
 
-        classes_with_prob = self.attributes_to_class_model.predict(
-            list(concepts_with_prob.values())
-        )
-
-        paged_classes: list[list[str | float]] = [[]]
-        for idx, (class_, prob) in enumerate(classes_with_prob.items()):
-            page = idx // self._state["numRowPerPage"]
-            if page >= len(paged_classes):
-                paged_classes.append([])
-            paged_classes[page].extend((class_, prob))
-
-        self._set_state({**self._state, "pagedClasses": paged_classes})
+        self.rerun()
 
     @Slot()
     def nextConceptPage(self):
@@ -130,4 +124,28 @@ class Bridge(QObject):
 
     @Slot()
     def rerun(self):
-        pass
+        concepts_with_prob: dict[str, float] = {}
+
+        for concepts in self._state["pagedConcepts"]:
+            for concept, prob in zip(concepts[::2], concepts[1::2]):
+                assert isinstance(concept, str)
+                assert isinstance(prob, float)
+                concepts_with_prob[concept] = prob
+
+        concept_names = load_attribute_names()
+        classes_with_prob = self.attributes_to_class_model.predict(
+            [concepts_with_prob[name] for name in concept_names]
+        )
+
+        sorted_classes_with_prob = dict(
+            sorted(classes_with_prob.items(), key=lambda item: item[1], reverse=True)
+        )
+
+        paged_classes: list[list[str | float]] = [[]]
+        for idx, (class_, prob) in enumerate(sorted_classes_with_prob.items()):
+            page = idx // self._state["numRowPerPage"]
+            if page >= len(paged_classes):
+                paged_classes.append([])
+            paged_classes[page].extend((class_, prob))
+
+        self._set_state({**self._state, "pagedClasses": paged_classes})

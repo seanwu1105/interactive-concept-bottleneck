@@ -56,7 +56,7 @@ class AttributesToClassModel:
         if self.model is None:
             self.model = load_attributes_to_class_model(device)
 
-        class_batch = torch.tensor([attributes]).to(device)
+        class_batch = (torch.tensor([attributes]) >= 0.5).to(torch.float).to(device)
         logits = self.model(class_batch)  # pylint: disable=not-callable
         probabilities = torch.softmax(logits, dim=1)[0]
         class_names = load_class_names()
