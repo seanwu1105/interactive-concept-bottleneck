@@ -113,17 +113,50 @@ ApplicationWindow {
                                 ...app.state.pagedConcepts[app.state.selectedConceptPage],
                                 ...new Array(app.state.numRowPerPage * 2 - app.state.pagedConcepts[app.state.selectedConceptPage].length).fill("-")
                             ]
-                            Label {
-                                id: conceptLabel
+                            Pane {
+                                id: conceptCell
                                 required property var modelData
                                 required property int index
                                 Layout.fillWidth: true
-                                text: typeof(modelData) === "number" ? `${(modelData * 100).toFixed(2)}%` : modelData
-                                horizontalAlignment: Text.AlignHCenter
-                                padding: 4
+                                padding: 0
 
                                 background: Rectangle {
-                                    color: Math.floor(conceptLabel.index / 2) % 2 == 0 ? "whitesmoke" : "white"
+                                    color: Math.floor(conceptCell.index / 2) % 2 == 0 ? "whitesmoke" : "white"
+                                }
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    spacing: 0
+
+                                    Label {
+                                        visible: conceptCell.index % 2 == 0
+                                        Layout.fillWidth: true
+                                        text: conceptCell.modelData
+                                        horizontalAlignment: Text.AlignHCenter
+                                        padding: 4
+                                    }
+
+                                    TextInput {
+                                        visible: conceptCell.index % 2 == 1
+                                        Layout.fillWidth: true
+                                        text: typeof(conceptCell.modelData) === "number" ? `${(conceptCell.modelData * 100).toFixed(2)}` : conceptCell.modelData
+                                        horizontalAlignment: Text.AlignHCenter
+                                        padding: 4
+                                        validator: DoubleValidator {
+                                            bottom: 0
+                                            top: 1
+                                            notation: DoubleValidator.StandardNotation
+                                            decimals: 2
+                                        }
+                                        readOnly: typeof(conceptCell.modelData) !== "number"
+                                    }
+
+                                    Label {
+                                        visible: conceptCell.index % 2 == 1
+                                        text: "%"
+                                        horizontalAlignment: Text.AlignRight
+                                        padding: 4
+                                    }
                                 }
                             }
                         }
