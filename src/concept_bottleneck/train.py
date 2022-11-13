@@ -1,7 +1,10 @@
+import pathlib
 import typing
 
 import torch
 from torch.utils.data import DataLoader
+
+MODEL_PATH = pathlib.Path(__file__).parent.resolve() / "models"
 
 TrainFn = typing.Callable[[torch.nn.Module], None]
 TestFn = typing.Callable[[torch.nn.Module, DataLoader[typing.Any]], tuple[float, float]]
@@ -39,7 +42,7 @@ def run_epochs(  # pylint: disable=too-many-arguments
                 print(
                     f"Saving model to {save_name} with accuracy {100 * best_acc:>0.4f}%"
                 )
-                torch.save(best_model, save_name)
+                torch.save(best_model, MODEL_PATH / save_name)
 
     print(f"Best Test Accuracy: {100 * best_acc:>0.4f}%")
 

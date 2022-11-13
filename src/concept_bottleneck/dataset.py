@@ -20,7 +20,7 @@ NUM_IMAGES = 11788
 NUM_ATTRIBUTES = 312
 NUM_CLASSES = 200
 
-DEFAULT_TRANSFORM = transforms.Compose(
+DEFAULT_IMAGE_TRANSFORM = transforms.Compose(
     [
         transforms.Resize(299),
         transforms.CenterCrop(299),
@@ -38,7 +38,9 @@ class CUB200ImageToAttributes(Dataset[tuple[torch.Tensor, npt.NDArray[np.float32
         self,
         train: bool,
         download: bool = True,
-        transform: typing.Callable[[Image.Image], torch.Tensor] = DEFAULT_TRANSFORM,
+        transform: typing.Callable[
+            [Image.Image], torch.Tensor
+        ] = DEFAULT_IMAGE_TRANSFORM,
     ):
         super().__init__()
         self.transform = transform
@@ -139,3 +141,9 @@ def load_image_paths():
 def load_image_class_labels():
     filepath = DATA_PATH / "image_class_labels.txt"
     return np.loadtxt(filepath, usecols=1, dtype=np.int_)
+
+
+def load_attribute_names():
+    filepath = DATA_PATH.parent / "attributes.txt"
+    with open(filepath, encoding="utf-8") as f:
+        return [line.split()[1] for line in f.readlines()]

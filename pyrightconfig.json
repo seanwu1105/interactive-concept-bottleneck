@@ -7,7 +7,6 @@
   "reportUnknownMemberType": "none",
   "reportCallInDefaultInitializer": "warning",
   "reportImplicitStringConcatenation": "warning",
-  "reportMissingSuperCall": "warning",
   "reportPropertyTypeMismatch": "warning",
   "reportUninitializedInstanceVariable": "warning",
   "reportUnnecessaryTypeIgnoreComment": "warning"

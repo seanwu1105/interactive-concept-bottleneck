@@ -2,9 +2,14 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import InteractiveConceptBottleneck.Ui
 
 ApplicationWindow {
     id: app
+
+    Bridge { id: bridge }
+
+    property var state: JSON.parse(bridge.state)
 
     visible: true
     width: 1080
@@ -23,18 +28,20 @@ ApplicationWindow {
             }
 
             Image {
+                visible: app.state.imagePath.length === 0
                 anchors.centerIn: parent
                 fillMode: Image.PreserveAspectFit
                 source: "assets/icon-picture.svg"
             }
 
-            // Image {
-            //     height: parent.height
-            //     width: parent.width
-            //     anchors.centerIn: parent
-            //     fillMode: Image.PreserveAspectFit
-            //     source: "assets/667-2000x300.jpg"
-            // }
+            Image {
+                visible: app.state.imagePath.length !== 0
+                height: parent.height
+                width: parent.width
+                anchors.centerIn: parent
+                fillMode: Image.PreserveAspectFit
+                source: app.state.imagePath
+            }
         }
 
         RowLayout {
@@ -48,15 +55,14 @@ ApplicationWindow {
                 FileDialog {
                     id: fileDialog
                     nameFilters: [ "Images (*.jpeg *.jpg)" ]
-                    onAccepted: {
-                        console.log("You chose: " + fileDialog.selectedFile)
-                    }
+                    onAccepted: bridge.setImagePath(fileDialog.selectedFile)
                 }
             }
 
             Button {
                 Layout.fillWidth: true
                 text: "Predict"
+                onClicked: bridge.predict()
             }
         }
 

@@ -11,6 +11,7 @@ from src.concept_bottleneck.dataset import (
     CUB200ImageToAttributes,
     calibrate_image_attribute_labels,
     download_and_extract,
+    load_attribute_names,
     load_image_attribute_labels,
     load_image_class_labels,
     load_image_paths,
@@ -284,3 +285,39 @@ def test_load_image_paths():
         image_paths[0]
         == "001.Black_footed_Albatross/Black_Footed_Albatross_0046_18.jpg"
     )
+
+
+class TestAttributeNames:
+    class TestAttributeIds:
+        def test_sorted(self, attribute_ids: list[int]):
+            assert np.all(np.diff(attribute_ids) == 1)
+
+        def test_start_at(self, attribute_ids: list[int]):
+            assert attribute_ids[0] == 1
+
+        def test_end_at(self, attribute_ids: list[int]):
+            assert attribute_ids[-1] == NUM_ATTRIBUTES
+
+        @pytest.fixture
+        def attribute_ids(self, attribute_names: list[tuple[int, str]]):
+            return [attribute_id for attribute_id, _ in attribute_names]
+
+    def test_shape(self, attribute_names: list[tuple[int, str]]):
+        assert len(attribute_names) == NUM_ATTRIBUTES
+
+    @pytest.fixture
+    def attribute_names(self):
+        filepath = DATA_PATH.parent / "attributes.txt"
+
+        paths: list[tuple[int, str]] = []
+        with open(filepath, encoding="utf-8") as f:
+            for line in f.readlines():
+                attribute_id, path = line.split()
+                paths.append((int(attribute_id), path))
+        return paths
+
+
+def test_load_attribute_names():
+    attribute_names = load_attribute_names()
+    assert len(attribute_names) == NUM_ATTRIBUTES
+    assert attribute_names[0] == "has_bill_shape::curved_(up_or_down)"
