@@ -63,6 +63,7 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 text: "Predict"
                 onClicked: bridge.predict()
+                enabled: app.state.imagePath.length !== 0
             }
         }
 
@@ -235,6 +236,7 @@ ApplicationWindow {
         Button {
             Layout.fillWidth: true
             text: "Rerun"
+            enabled: app.state.imagePath.length !== 0
         }
     }
 }
