@@ -94,7 +94,7 @@ class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.float32], np.int_]]):
 
 
 def download_and_extract():
-    if not DATA_PATH.exists():
+    if not (DATA_PATH / "images").exists():
         download_and_extract_archive(url=URL, download_root=str(ROOT), md5=MD5)
 
 
