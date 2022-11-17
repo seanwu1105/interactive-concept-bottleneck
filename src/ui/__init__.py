@@ -111,3 +111,15 @@ class Bridge(QObject):
         )
 
         self._set_state({**self._state, "classes": classes_with_prob})
+
+    @Slot(str, float)
+    def setConceptProbability(self, name: str, value: float):
+        print(name, value)
+        if self._state["concepts"][name] == value:
+            return
+        self._set_state(
+            {
+                **self._state,
+                "concepts": {**self._state["concepts"], name: value},
+            }
+        )

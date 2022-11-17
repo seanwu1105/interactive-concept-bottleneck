@@ -137,38 +137,55 @@ ApplicationWindow {
                             }
 
                             Repeater {
-                                model: conceptTable.pagedConcepts[app.state.selectedConceptPage]?.map(concept => concept[1])
-                                delegate: Pane {
+                                model: conceptTable.pagedConcepts[app.state.selectedConceptPage]
+
+                                delegate: Label {
                                     id: conceptProbabilityRepeater
                                     required property var modelData
                                     required property var index
 
                                     Layout.fillWidth: true
-
-                                    padding: 0
+                                    text: `${(modelData[1] * 100).toFixed(2)}%`
+                                    horizontalAlignment: Text.AlignHCenter
+                                    padding: 4
                                     background: Rectangle {
                                         color: conceptProbabilityRepeater.index % 2 === 0 ? "white" : "whitesmoke"
                                     }
 
-                                    RowLayout {
+                                    MouseArea {
                                         anchors.fill: parent
+                                        hoverEnabled: true
+                                        onContainsMouseChanged: parent.background.color = containsMouse ? "lightgray" : conceptProbabilityRepeater.index % 2 === 0 ? "white" : "whitesmoke"
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: editConceptDialog.open()
 
-                                        TextInput {
-                                            Layout.fillWidth: true
-                                            text: (conceptProbabilityRepeater.modelData * 100).toFixed(2)
-                                            horizontalAlignment: Text.AlignHCenter
-                                            padding: 4
-                                            validator: DoubleValidator {
-                                                bottom: 0
-                                                top: 100
-                                                notation: DoubleValidator.StandardNotation
-                                                decimals: 2
+                                        Dialog {
+                                            id: editConceptDialog
+                                            title: "Edit Concept"
+                                            standardButtons: Dialog.Ok
+                                            x: (parent.width - width) / 2
+                                            y: (parent.height - height) / 2
+                                            RowLayout {
+                                                TextField {
+                                                    id: conceptProbabilityTextField
+                                                    Layout.fillWidth: true
+                                                    text: (conceptProbabilityRepeater.modelData[1] * 100).toFixed(2)
+                                                    validator: DoubleValidator {
+                                                        bottom: 0
+                                                        top: 100
+                                                        notation: DoubleValidator.StandardNotation
+                                                        decimals: 2
+                                                    }
+                                                    onTextEdited: {
+                                                        if (text.length === 0) text = 0
+                                                        if (Number.isNaN(Number(text))) text = 0
+                                                        if (Number(text) < 0) text = 0
+                                                        if (Number(text) > 100) text = 100
+                                                    }
+                                                }
+                                                Label { text: "%" }
                                             }
-                                        }
-
-                                        Label {
-                                            Layout.rightMargin: 4
-                                            text: "%"
+                                            onAccepted: bridge.setConceptProbability(conceptProbabilityRepeater.modelData[0], Number(conceptProbabilityTextField.text) / 100)
                                         }
                                     }
                                 }
