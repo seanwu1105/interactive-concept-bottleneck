@@ -18,10 +18,9 @@ QML_IMPORT_MAJOR_VERSION = 1
 
 class State(TypedDict):
     imagePath: str
-    numRowPerPage: int
-    pagedConcepts: list[list[str | float]]
+    concepts: dict[str, float]
     selectedConceptPage: int
-    pagedClasses: list[list[str | float]]
+    classes: dict[str, float]
     selectedClassPage: int
 
 
@@ -33,10 +32,9 @@ class Bridge(QObject):
         super().__init__(parent)
         self._state: State = {
             "imagePath": "",
-            "numRowPerPage": 8,
-            "pagedConcepts": [[]],
+            "concepts": {},
             "selectedConceptPage": 0,
-            "pagedClasses": [[]],
+            "classes": {},
             "selectedClassPage": 0,
         }
 
@@ -63,25 +61,12 @@ class Bridge(QObject):
             self._state["imagePath"]
         )
 
-        sorted_concepts_with_prob = dict(
-            sorted(concepts_with_prob.items(), key=lambda x: x[1], reverse=True)
-        )
-
-        paged_concepts: list[list[str | float]] = [[]]
-        for idx, (concept, prob) in enumerate(sorted_concepts_with_prob.items()):
-            page = idx // self._state["numRowPerPage"]
-            if page >= len(paged_concepts):
-                paged_concepts.append([])
-            paged_concepts[page].extend((concept, prob))
-
-        self._set_state({**self._state, "pagedConcepts": paged_concepts})
+        self._set_state({**self._state, "concepts": concepts_with_prob})
 
         self.rerun()
 
     @Slot()
     def nextConceptPage(self):
-        if self._state["selectedConceptPage"] + 1 >= len(self._state["pagedConcepts"]):
-            return
         self._set_state(
             {
                 **self._state,
@@ -91,8 +76,6 @@ class Bridge(QObject):
 
     @Slot()
     def previousConceptPage(self):
-        if self._state["selectedConceptPage"] == 0:
-            return
         self._set_state(
             {
                 **self._state,
@@ -102,8 +85,6 @@ class Bridge(QObject):
 
     @Slot()
     def nextClassPage(self):
-        if self._state["selectedClassPage"] + 1 >= len(self._state["pagedClasses"]):
-            return
         self._set_state(
             {
                 **self._state,
@@ -124,28 +105,9 @@ class Bridge(QObject):
 
     @Slot()
     def rerun(self):
-        concepts_with_prob: dict[str, float] = {}
-
-        for concepts in self._state["pagedConcepts"]:
-            for concept, prob in zip(concepts[::2], concepts[1::2]):
-                assert isinstance(concept, str)
-                assert isinstance(prob, float)
-                concepts_with_prob[concept] = prob
-
         concept_names = load_attribute_names()
         classes_with_prob = self.attributes_to_class_model.predict(
-            [concepts_with_prob[name] for name in concept_names]
+            [self._state["concepts"][name] for name in concept_names]
         )
 
-        sorted_classes_with_prob = dict(
-            sorted(classes_with_prob.items(), key=lambda item: item[1], reverse=True)
-        )
-
-        paged_classes: list[list[str | float]] = [[]]
-        for idx, (class_, prob) in enumerate(sorted_classes_with_prob.items()):
-            page = idx // self._state["numRowPerPage"]
-            if page >= len(paged_classes):
-                paged_classes.append([])
-            paged_classes[page].extend((class_, prob))
-
-        self._set_state({**self._state, "pagedClasses": paged_classes})
+        self._set_state({**self._state, "classes": classes_with_prob})

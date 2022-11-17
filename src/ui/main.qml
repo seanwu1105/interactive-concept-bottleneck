@@ -49,6 +49,7 @@ ApplicationWindow {
 
             Button {
                 Layout.fillWidth: true
+                Layout.leftMargin: 4
                 text: "Set Image"
                 onClicked: fileDialog.open()
 
@@ -61,6 +62,7 @@ ApplicationWindow {
 
             Button {
                 Layout.fillWidth: true
+                Layout.rightMargin: 4
                 text: "Predict"
                 onClicked: bridge.predict()
                 enabled: app.state.imagePath.length !== 0
@@ -68,6 +70,9 @@ ApplicationWindow {
         }
 
         RowLayout {
+            id: resultTables
+            readonly property var rowsPerPage: 8
+
             Layout.fillWidth: true
 
             Pane {
@@ -85,77 +90,86 @@ ApplicationWindow {
                         font.bold: true
                     }
 
-                    GridLayout {
+                    RowLayout {
+                        id: conceptTable
                         Layout.fillWidth: true
 
-                        columns: 2
-                        columnSpacing: 0
-                        rowSpacing: 0
+                        property var sortedConcepts: Object.entries(app.state.concepts).sort((a, b) => b[1] - a[1])
+                        property var pagedConcepts: sortedConcepts.reduce((rows, key, index) => (index % resultTables.rowsPerPage === 0 ? rows.push([key]) : rows[rows.length - 1].push(key)) && rows, [])
 
-                        Label {
-                            Layout.fillWidth: true
-                            text: "Concept"
-                            horizontalAlignment: Text.AlignHCenter
-                            padding: 8
-                            font.bold: true
-                        }
+                        spacing: 0
 
-                        Label {
-                            Layout.fillWidth: true
-                            text: "Probability"
-                            horizontalAlignment: Text.AlignHCenter
-                            padding: 8
-                            font.bold: true
-                        }
-
-                        Repeater {
-                            model: [
-                                ...app.state.pagedConcepts[app.state.selectedConceptPage],
-                                ...new Array(app.state.numRowPerPage * 2 - app.state.pagedConcepts[app.state.selectedConceptPage].length).fill("-")
-                            ]
-                            Pane {
-                                id: conceptCell
-                                required property var modelData
-                                required property int index
+                        ColumnLayout {
+                            Label {
                                 Layout.fillWidth: true
-                                padding: 0
+                                text: "Concept"
+                                horizontalAlignment: Text.AlignHCenter
+                                padding: 8
+                                font.bold: true
+                            }
 
-                                background: Rectangle {
-                                    color: Math.floor(conceptCell.index / 2) % 2 == 0 ? "whitesmoke" : "white"
+                            Repeater {
+                                model: conceptTable.pagedConcepts[app.state.selectedConceptPage]?.map(concept => concept[0])
+
+                                delegate: Label {
+                                    id: conceptLabelRepeater
+                                    required property var modelData
+                                    required property var index
+
+                                    Layout.fillWidth: true
+                                    text: modelData
+                                    horizontalAlignment: Text.AlignHCenter
+                                    padding: 4
+                                    background: Rectangle {
+                                        color: conceptLabelRepeater.index % 2 === 0 ? "white" : "whitesmoke"
+                                    }
                                 }
+                            }
+                        }
 
-                                RowLayout {
-                                    anchors.fill: parent
-                                    spacing: 0
+                        ColumnLayout {
+                            Label {
+                                Layout.fillWidth: true
+                                text: "Probability"
+                                horizontalAlignment: Text.AlignHCenter
+                                padding: 8
+                                font.bold: true
+                            }
 
-                                    Label {
-                                        visible: conceptCell.index % 2 == 0
-                                        Layout.fillWidth: true
-                                        text: conceptCell.modelData
-                                        horizontalAlignment: Text.AlignHCenter
-                                        padding: 4
+                            Repeater {
+                                model: conceptTable.pagedConcepts[app.state.selectedConceptPage]?.map(concept => concept[1])
+                                delegate: Pane {
+                                    id: conceptProbabilityRepeater
+                                    required property var modelData
+                                    required property var index
+
+                                    Layout.fillWidth: true
+
+                                    padding: 0
+                                    background: Rectangle {
+                                        color: conceptProbabilityRepeater.index % 2 === 0 ? "white" : "whitesmoke"
                                     }
 
-                                    TextInput {
-                                        visible: conceptCell.index % 2 == 1
-                                        Layout.fillWidth: true
-                                        text: typeof(conceptCell.modelData) === "number" ? `${(conceptCell.modelData * 100).toFixed(2)}` : conceptCell.modelData
-                                        horizontalAlignment: Text.AlignHCenter
-                                        padding: 4
-                                        validator: DoubleValidator {
-                                            bottom: 0
-                                            top: 1
-                                            notation: DoubleValidator.StandardNotation
-                                            decimals: 2
+                                    RowLayout {
+                                        anchors.fill: parent
+
+                                        TextInput {
+                                            Layout.fillWidth: true
+                                            text: (conceptProbabilityRepeater.modelData * 100).toFixed(2)
+                                            horizontalAlignment: Text.AlignHCenter
+                                            padding: 4
+                                            validator: DoubleValidator {
+                                                bottom: 0
+                                                top: 100
+                                                notation: DoubleValidator.StandardNotation
+                                                decimals: 2
+                                            }
                                         }
-                                        readOnly: typeof(conceptCell.modelData) !== "number"
-                                    }
 
-                                    Label {
-                                        visible: conceptCell.index % 2 == 1
-                                        text: "%"
-                                        horizontalAlignment: Text.AlignRight
-                                        padding: 4
+                                        Label {
+                                            Layout.rightMargin: 4
+                                            text: "%"
+                                        }
                                     }
                                 }
                             }
@@ -165,9 +179,7 @@ ApplicationWindow {
                     Pane {
                         Layout.fillWidth: true
                         padding: 0
-                        background: Rectangle {
-                            color: "whitesmoke"
-                        }
+                        background: Rectangle { color: "whitesmoke" }
 
                         RowLayout {
                             anchors.fill: parent
@@ -181,12 +193,12 @@ ApplicationWindow {
                             Label {
                                 Layout.fillWidth: true
                                 horizontalAlignment: Text.AlignHCenter
-                                text: `${app.state.selectedConceptPage + 1} / ${Object.keys(app.state.pagedConcepts).length}`
+                                text: `${app.state.selectedConceptPage + 1} / ${conceptTable.pagedConcepts.length}`
                             }
 
                             Button {
                                 text: ">"
-                                enabled: app.state.selectedConceptPage < Object.keys(app.state.pagedConcepts).length - 1
+                                enabled: app.state.selectedConceptPage + 1 < conceptTable.pagedConcepts.length
                                 onClicked: bridge.nextConceptPage()
                             }
                         }
@@ -209,45 +221,67 @@ ApplicationWindow {
                         font.bold: true
                     }
 
-                    GridLayout {
+                    RowLayout {
+                        id: classTable
                         Layout.fillWidth: true
 
-                        columns: 2
-                        columnSpacing: 0
-                        rowSpacing: 0
+                        property var sortedClasses: Object.entries(app.state.classes).sort((a, b) => b[1] - a[1])
+                        property var pagedClasses: sortedClasses.reduce((rows, key, index) => (index % resultTables.rowsPerPage === 0 ? rows.push([key]) : rows[rows.length - 1].push(key)) && rows, [])
 
-                        Label {
-                            Layout.fillWidth: true
-                            text: "Species"
-                            horizontalAlignment: Text.AlignHCenter
-                            padding: 8
-                            font.bold: true
-                        }
+                        spacing: 0
 
-                        Label {
-                            Layout.fillWidth: true
-                            text: "Probability"
-                            horizontalAlignment: Text.AlignHCenter
-                            padding: 8
-                            font.bold: true
-                        }
-
-                        Repeater {
-                            model: [
-                                ...app.state.pagedClasses[app.state.selectedClassPage],
-                                ...new Array(app.state.numRowPerPage * 2 - app.state.pagedClasses[app.state.selectedClassPage].length).fill("-")
-                            ]
+                        ColumnLayout {
                             Label {
-                                id: conceptLabel
-                                required property var modelData
-                                required property int index
                                 Layout.fillWidth: true
-                                text: typeof(modelData) === "number" ? `${(modelData * 100).toFixed(2)}%` : modelData
+                                text: "Species"
                                 horizontalAlignment: Text.AlignHCenter
-                                padding: 4
+                                padding: 8
+                                font.bold: true
+                            }
 
-                                background: Rectangle {
-                                    color: Math.floor(conceptLabel.index / 2) % 2 == 0 ? "whitesmoke" : "white"
+                            Repeater {
+                                model: classTable.pagedClasses[app.state.selectedClassPage]?.map(_class => _class[0])
+
+                                delegate: Label {
+                                    id: classLabelRepeater
+                                    required property var modelData
+                                    required property var index
+
+                                    Layout.fillWidth: true
+                                    text: modelData
+                                    horizontalAlignment: Text.AlignHCenter
+                                    padding: 4
+                                    background: Rectangle {
+                                        color: classLabelRepeater.index % 2 === 0 ? "white" : "whitesmoke"
+                                    }
+                                }
+                            }
+                        }
+
+                        ColumnLayout {
+                            Label {
+                                Layout.fillWidth: true
+                                text: "Probability"
+                                horizontalAlignment: Text.AlignHCenter
+                                padding: 8
+                                font.bold: true
+                            }
+
+                            Repeater {
+                                model: classTable.pagedClasses[app.state.selectedClassPage]?.map(_class => _class[1])
+
+                                delegate: Label {
+                                    id: classProbabilityRepeater
+                                    required property var modelData
+                                    required property var index
+
+                                    Layout.fillWidth: true
+                                    text: `${(modelData * 100).toFixed(2)}%`
+                                    horizontalAlignment: Text.AlignHCenter
+                                    padding: 4
+                                    background: Rectangle {
+                                        color: classProbabilityRepeater.index % 2 === 0 ? "white" : "whitesmoke"
+                                    }
                                 }
                             }
                         }
@@ -272,12 +306,12 @@ ApplicationWindow {
                             Label {
                                 Layout.fillWidth: true
                                 horizontalAlignment: Text.AlignHCenter
-                                text: `${app.state.selectedClassPage + 1} / ${Object.keys(app.state.pagedClasses).length}`
+                                text: `${app.state.selectedClassPage + 1} / ${classTable.pagedClasses.length}`
                             }
 
                             Button {
                                 text: ">"
-                                enabled: app.state.selectedClassPage < Object.keys(app.state.pagedClasses).length - 1
+                                enabled: app.state.selectedClassPage + 1 < classTable.pagedClasses.length
                                 onClicked: bridge.nextClassPage()
                             }
                         }
