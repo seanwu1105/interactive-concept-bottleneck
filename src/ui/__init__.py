@@ -7,7 +7,7 @@ from PySide6.QtCore import Property, QObject, Signal, Slot
 from PySide6.QtQml import QmlElement
 
 from src.concept_bottleneck.dataset import load_attribute_names
-from src.concept_bottleneck.predict import (
+from src.concept_bottleneck.inference import (
     AttributesToClassModel,
     ImageToAttributesModel,
 )
