@@ -11,6 +11,10 @@ from src.concept_bottleneck.dataset import (
 from src.concept_bottleneck.networks import get_inception, get_mlp
 from src.concept_bottleneck.train import MODEL_PATH
 
+INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME = "independent-image-to-attributes.pth"
+INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME = "independent-attributes-to-class.pth"
+SEQUENTIAL_ATTRIBUTES_TO_CLASS_MODEL_NAME = "sequential-attributes-to-class.pth"
+
 
 class ImageToAttributesModel:
     def __init__(self):
@@ -39,7 +43,9 @@ class ImageToAttributesModel:
 def load_image_to_attributes_model(device: str) -> torch.nn.Module:
     model = get_inception()
 
-    model.load_state_dict(torch.load(MODEL_PATH / "image-to-attributes.pth"))
+    model.load_state_dict(
+        torch.load(MODEL_PATH / INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME)
+    )
 
     model = model.to(device)
     model.eval()
@@ -70,7 +76,9 @@ class AttributesToClassModel:
 def load_attributes_to_class_model(device: str) -> torch.nn.Module:
     model = get_mlp()
 
-    model.load_state_dict(torch.load(MODEL_PATH / "attributes-to-class.pth"))
+    model.load_state_dict(
+        torch.load(MODEL_PATH / INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME)
+    )
 
     model = model.to(device)
     model.eval()

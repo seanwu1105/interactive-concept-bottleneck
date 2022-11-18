@@ -93,6 +93,44 @@ class CUB200AttributesToClass(Dataset[tuple[npt.NDArray[np.float32], np.int_]]):
         )
 
 
+class CUB200ImageToClass(Dataset[tuple[torch.Tensor, np.int_]]):
+    def __init__(
+        self,
+        train: bool,
+        download: bool = True,
+        transform: typing.Callable[
+            [Image.Image], torch.Tensor
+        ] = DEFAULT_IMAGE_TRANSFORM,
+    ):
+        super().__init__()
+        self.transform = transform
+
+        if download:
+            download_and_extract()
+
+        train_test_split = load_train_test_split()
+        self.image_paths = tuple(
+            path
+            for is_train, path in zip(train_test_split, load_image_paths())
+            if is_train == train
+        )
+        self.image_class_labels = load_image_class_labels()[train_test_split == train]
+
+        assert len(self.image_paths) == len(self.image_class_labels)
+
+    def __len__(self):
+        return len(self.image_class_labels)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, np.int_]:
+        image_path = DATA_PATH / "images" / self.image_paths[idx]
+        image = pil_loader(str(image_path))
+
+        return (
+            self.transform(image),
+            self.image_class_labels[idx] - 1,
+        )  # convert from 1-indexed to 0-indexed
+
+
 def download_and_extract():
     if not (DATA_PATH / "images").exists():
         download_and_extract_archive(url=URL, download_root=str(ROOT), md5=MD5)

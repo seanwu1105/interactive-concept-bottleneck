@@ -9,6 +9,7 @@ from src.concept_bottleneck.dataset import (
     NUM_IMAGES,
     CUB200AttributesToClass,
     CUB200ImageToAttributes,
+    CUB200ImageToClass,
     calibrate_image_attribute_labels,
     download_and_extract,
     load_attribute_names,
@@ -85,6 +86,34 @@ class TestCUB200AttributesToClass:
             assert attributes.dtype == np.float32
             assert np.all((attributes >= 0) & (attributes <= 1))
             assert class_label == 1 - 1
+
+
+class TestCUB200ImageToClass:
+    class TestTrainingDataset:
+        @pytest.fixture
+        def dataset(self):
+            return CUB200ImageToClass(train=True)
+
+        def test_len(self, dataset: CUB200ImageToClass):
+            assert len(dataset) == 5994
+
+        def test_getitem(self, dataset: CUB200ImageToClass):
+            image, class_ = dataset[0]
+            assert image.shape == (3, 299, 299)
+            assert 0 <= class_ <= NUM_CLASSES - 1
+
+    class TestTestDataset:
+        @pytest.fixture
+        def dataset(self):
+            return CUB200ImageToClass(train=False)
+
+        def test_len(self, dataset: CUB200ImageToClass):
+            assert len(dataset) == 5794
+
+        def test_getitem(self, dataset: CUB200ImageToClass):
+            image, class_ = dataset[0]
+            assert image.shape == (3, 299, 299)
+            assert 0 <= class_ <= NUM_CLASSES - 1
 
 
 class TestTrainTestSplit:
