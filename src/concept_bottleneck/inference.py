@@ -14,6 +14,7 @@ from src.concept_bottleneck.train import MODEL_PATH
 INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME = "independent-image-to-attributes.pth"
 INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME = "independent-attributes-to-class.pth"
 SEQUENTIAL_ATTRIBUTES_TO_CLASS_MODEL_NAME = "sequential-attributes-to-class.pth"
+JOINT_IMAGE_TO_CLASS_MODEL_NAME = "joint-image-to-class.pth"
 
 
 class ImageToAttributesModel:
