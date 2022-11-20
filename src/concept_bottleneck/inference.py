@@ -11,10 +11,10 @@ from src.concept_bottleneck.dataset import (
 from src.concept_bottleneck.networks import get_inception, get_mlp
 from src.concept_bottleneck.train import MODEL_PATH
 
-INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME = "independent-image-to-attributes.pth"
-INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME = "independent-attributes-to-class.pth"
-SEQUENTIAL_ATTRIBUTES_TO_CLASS_MODEL_NAME = "sequential-attributes-to-class.pth"
-JOINT_IMAGE_TO_CLASS_MODEL_NAME = "joint-image-to-class.pth"
+INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME = "independent_image_to_attributes.pth"
+INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME = "independent_attributes_to_class.pth"
+SEQUENTIAL_ATTRIBUTES_TO_CLASS_MODEL_NAME = "sequential_attributes_to_class.pth"
+JOINT_IMAGE_TO_CLASS_MODEL_NAME = "joint_image_to_class.pth"
 
 
 class ImageToAttributesModel:
