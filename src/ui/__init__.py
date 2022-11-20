@@ -8,6 +8,8 @@ from PySide6.QtQml import QmlElement
 
 from src.concept_bottleneck.dataset import load_attribute_names
 from src.concept_bottleneck.inference import (
+    INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME,
+    INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME,
     AttributesToClassModel,
     ImageToAttributesModel,
 )
@@ -58,7 +60,7 @@ class Bridge(QObject):
     @Slot()
     def predict(self):
         concepts_with_prob = self.image_to_attributes_model.predict(
-            self._state["imagePath"]
+            INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME, self._state["imagePath"]
         )
 
         self._set_state({**self._state, "concepts": concepts_with_prob})
@@ -107,7 +109,8 @@ class Bridge(QObject):
     def rerun(self):
         concept_names = load_attribute_names()
         classes_with_prob = self.attributes_to_class_model.predict(
-            [self._state["concepts"][name] for name in concept_names]
+            INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME,
+            [self._state["concepts"][name] for name in concept_names],
         )
 
         self._set_state({**self._state, "classes": classes_with_prob})
