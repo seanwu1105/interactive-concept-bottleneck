@@ -9,15 +9,17 @@ MODEL_PATH = pathlib.Path(__file__).parent.resolve() / "models"
 TrainFn = typing.Callable[[torch.nn.Module], None]
 TestFn = typing.Callable[[torch.nn.Module, DataLoader[typing.Any]], tuple[float, float]]
 
+M = typing.TypeVar("M", bound=torch.nn.Module)
+
 
 def run_epochs(  # pylint: disable=too-many-arguments
     epochs: int,
-    model: torch.nn.Module,
+    model: M,
     train: TrainFn,
     test: TestFn,
     training_dataloader: DataLoader[typing.Any],
     test_dataloader: DataLoader[typing.Any],
-    save_name: str | None = None,
+    on_better_accuracy: typing.Callable[[M, float], None],
 ):
     best_acc = 0.0
     best_model = None
@@ -38,11 +40,7 @@ def run_epochs(  # pylint: disable=too-many-arguments
         if test_acc > best_acc:
             best_acc = test_acc
             best_model = model.state_dict()
-            if save_name is not None:
-                print(
-                    f"Saving model to {save_name} with accuracy {100 * best_acc:>0.4f}%"
-                )
-                torch.save(best_model, MODEL_PATH / save_name)
+            on_better_accuracy(model, best_acc)
 
     print(f"Best Test Accuracy: {100 * best_acc:>0.4f}%")
 

@@ -14,18 +14,19 @@ from src.concept_bottleneck.train import MODEL_PATH
 INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME = "independent_image_to_attributes.pth"
 INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME = "independent_attributes_to_class.pth"
 SEQUENTIAL_ATTRIBUTES_TO_CLASS_MODEL_NAME = "sequential_attributes_to_class.pth"
-JOINT_IMAGE_TO_CLASS_MODEL_NAME = "joint_image_to_class.pth"
+JOINT_IMAGE_TO_ATTRIBUTES_MODEL_NAME = "joint_image_to_attributes.pth"
+JOINT_ATTRIBUTES_TO_CLASS_MODEL_NAME = "joint_attributes_to_class.pth"
 
 
 class ImageToAttributesModel:
     def __init__(self):
         self.model: torch.nn.Module | None = None
 
-    def predict(self, image_uri: str) -> dict[str, float]:
+    def predict(self, model_name: str, image_uri: str) -> dict[str, float]:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
         if self.model is None:
-            self.model = load_image_to_attributes_model(device)
+            self.model = load_image_to_attributes_model(model_name, device)
 
         path = urllib.parse.unquote(urllib.parse.urlparse(image_uri).path)
 
@@ -41,12 +42,10 @@ class ImageToAttributesModel:
         }
 
 
-def load_image_to_attributes_model(device: str) -> torch.nn.Module:
+def load_image_to_attributes_model(name: str, device: str) -> torch.nn.Module:
     model = get_inception()
 
-    model.load_state_dict(
-        torch.load(MODEL_PATH / INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME)
-    )
+    model.load_state_dict(torch.load(MODEL_PATH / name))
 
     model = model.to(device)
     model.eval()
@@ -57,11 +56,11 @@ class AttributesToClassModel:
     def __init__(self):
         self.model: torch.nn.Module | None = None
 
-    def predict(self, attributes: list[float]):
+    def predict(self, model_name: str, attributes: list[float]):
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
         if self.model is None:
-            self.model = load_attributes_to_class_model(device)
+            self.model = load_attributes_to_class_model(model_name, device)
 
         class_batch = torch.tensor([attributes]).to(device)
         logits = self.model(class_batch)  # pylint: disable=not-callable
@@ -74,12 +73,10 @@ class AttributesToClassModel:
         }
 
 
-def load_attributes_to_class_model(device: str) -> torch.nn.Module:
+def load_attributes_to_class_model(name: str, device: str) -> torch.nn.Module:
     model = get_mlp()
 
-    model.load_state_dict(
-        torch.load(MODEL_PATH / INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME)
-    )
+    model.load_state_dict(torch.load(MODEL_PATH / name))
 
     model = model.to(device)
     model.eval()
