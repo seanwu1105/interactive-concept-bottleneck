@@ -27,6 +27,7 @@ class ImageToAttributesModel:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
         if self.model is None or self.model_name != model_name:
+            self.model_name = model_name
             self.model = load_image_to_attributes_model(model_name, device)
 
         path = urllib.parse.unquote(urllib.parse.urlparse(image_uri).path)
@@ -62,6 +63,7 @@ class AttributesToClassModel:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
         if self.model is None or self.model_name != model_name:
+            self.model_name = model_name
             self.model = load_attributes_to_class_model(model_name, device)
 
         class_batch = torch.tensor([attributes]).to(device)
