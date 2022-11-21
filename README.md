@@ -4,6 +4,8 @@ CS593HAI Human-AI Interaction programming assignment 1 @Purdue.
 
 ## Getting Started
 
+This project only supports Ubuntu 20.04 or later.
+
 Install Python 3.10.x.
 
 Install Poetry **1.2 or later**. See
