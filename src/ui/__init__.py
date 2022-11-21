@@ -1,7 +1,7 @@
 # pylint: disable=invalid-name
 
 import json
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 from PySide6.QtCore import Property, QObject, Signal, Slot
 from PySide6.QtQml import QmlElement
@@ -10,12 +10,17 @@ from src.concept_bottleneck.dataset import load_attribute_names
 from src.concept_bottleneck.inference import (
     INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME,
     INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME,
+    JOINT_ATTRIBUTES_TO_CLASS_MODEL_NAME,
+    JOINT_IMAGE_TO_ATTRIBUTES_MODEL_NAME,
+    SEQUENTIAL_ATTRIBUTES_TO_CLASS_MODEL_NAME,
     AttributesToClassModel,
     ImageToAttributesModel,
 )
 
 QML_IMPORT_NAME = "InteractiveConceptBottleneck.Ui"
 QML_IMPORT_MAJOR_VERSION = 1
+
+ModelType = Literal["independent", "sequential", "joint"]
 
 
 class State(TypedDict):
@@ -24,6 +29,7 @@ class State(TypedDict):
     selectedConceptPage: int
     classes: dict[str, float]
     selectedClassPage: int
+    modelType: ModelType
 
 
 @QmlElement
@@ -38,6 +44,7 @@ class Bridge(QObject):
             "selectedConceptPage": 0,
             "classes": {},
             "selectedClassPage": 0,
+            "modelType": "independent",
         }
 
         self.image_to_attributes_model = ImageToAttributesModel()
@@ -60,7 +67,7 @@ class Bridge(QObject):
     @Slot()
     def predict(self):
         concepts_with_prob = self.image_to_attributes_model.predict(
-            INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME, self._state["imagePath"]
+            MODEL_TYPE_MAP[self._state["modelType"]][0], self._state["imagePath"]
         )
 
         self._set_state({**self._state, "concepts": concepts_with_prob})
@@ -109,7 +116,7 @@ class Bridge(QObject):
     def rerun(self):
         concept_names = load_attribute_names()
         classes_with_prob = self.attributes_to_class_model.predict(
-            INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME,
+            MODEL_TYPE_MAP[self._state["modelType"]][1],
             [self._state["concepts"][name] for name in concept_names],
         )
 
@@ -117,7 +124,6 @@ class Bridge(QObject):
 
     @Slot(str, float)
     def setConceptProbability(self, name: str, value: float):
-        print(name, value)
         if self._state["concepts"][name] == value:
             return
         self._set_state(
@@ -126,3 +132,25 @@ class Bridge(QObject):
                 "concepts": {**self._state["concepts"], name: value},
             }
         )
+
+    @Slot(str)
+    def setModelType(self, value: ModelType):
+        if self._state["modelType"] == value:
+            return
+        self._set_state({**self._state, "modelType": value})
+
+
+MODEL_TYPE_MAP: dict[ModelType, tuple[str, str]] = {
+    "independent": (
+        INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME,
+        INDEPENDENT_ATTRIBUTES_TO_CLASS_MODEL_NAME,
+    ),
+    "sequential": (
+        INDEPENDENT_IMAGE_TO_ATTRIBUTES_MODEL_NAME,
+        SEQUENTIAL_ATTRIBUTES_TO_CLASS_MODEL_NAME,
+    ),
+    "joint": (
+        JOINT_IMAGE_TO_ATTRIBUTES_MODEL_NAME,
+        JOINT_ATTRIBUTES_TO_CLASS_MODEL_NAME,
+    ),
+}

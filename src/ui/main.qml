@@ -343,5 +343,33 @@ ApplicationWindow {
             enabled: app.state.imagePath.length !== 0
             onClicked: bridge.rerun()
         }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            Label {
+                text: "Model Type:"
+                leftPadding: 8
+            }
+
+            RadioButton {
+                text: "Independent"
+                checked: app.state.modelType === "independent"
+                onClicked: bridge.setModelType("independent")
+            }
+
+            RadioButton {
+                text: "Sequential"
+                checked: app.state.modelType === "sequential"
+                onClicked: bridge.setModelType("sequential")
+            }
+
+            RadioButton {
+                text: "Joint"
+                checked: app.state.modelType === "joint"
+                onClicked: bridge.setModelType("joint")
+            }
+        }
     }
 }

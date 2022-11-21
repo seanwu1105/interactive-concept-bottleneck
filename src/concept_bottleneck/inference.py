@@ -20,12 +20,13 @@ JOINT_ATTRIBUTES_TO_CLASS_MODEL_NAME = "joint_attributes_to_class.pth"
 
 class ImageToAttributesModel:
     def __init__(self):
+        self.model_name: str | None = None
         self.model: torch.nn.Module | None = None
 
     def predict(self, model_name: str, image_uri: str) -> dict[str, float]:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        if self.model is None:
+        if self.model is None or self.model_name != model_name:
             self.model = load_image_to_attributes_model(model_name, device)
 
         path = urllib.parse.unquote(urllib.parse.urlparse(image_uri).path)
@@ -54,12 +55,13 @@ def load_image_to_attributes_model(name: str, device: str) -> torch.nn.Module:
 
 class AttributesToClassModel:
     def __init__(self):
+        self.model_name: str | None = None
         self.model: torch.nn.Module | None = None
 
     def predict(self, model_name: str, attributes: list[float]):
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        if self.model is None:
+        if self.model is None or self.model_name != model_name:
             self.model = load_attributes_to_class_model(model_name, device)
 
         class_batch = torch.tensor([attributes]).to(device)
