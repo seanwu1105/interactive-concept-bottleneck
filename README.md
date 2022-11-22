@@ -2,6 +2,20 @@
 
 CS593HAI Human-AI Interaction programming assignment 1 @Purdue.
 
+## Preview
+
+### Predict
+
+![predict](./assets/predict.gif)
+
+### Rerun
+
+![rerun](./assets/rerun.gif)
+
+### Change Model
+
+![change_model](./assets/change_model.gif)
+
 ## Getting Started
 
 This project only supports Ubuntu 20.04 or later.
