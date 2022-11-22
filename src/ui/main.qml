@@ -55,7 +55,7 @@ ApplicationWindow {
 
                 FileDialog {
                     id: fileDialog
-                    nameFilters: [ "Images (*.jpeg *.jpg)" ]
+                    nameFilters: [ "JPEG Images (*.jpeg *.jpg)" ]
                     onAccepted: bridge.setImagePath(fileDialog.selectedFile)
                 }
             }

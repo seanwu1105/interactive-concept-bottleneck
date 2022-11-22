@@ -48,6 +48,8 @@ python main.py
 > Make sure you are in the project's root directory and your have activated the
 > virtual environment.
 
+> We currently only support JPEG images.
+
 ## Model Architecture
 
 All model accuracies can be found in [`test_models.ipynb`](./test_models.ipynb).
