@@ -1,6 +1,7 @@
 # pylint: disable=invalid-name
 
 import json
+import threading
 from typing import Literal, TypedDict
 
 from PySide6.QtCore import Property, QObject, Signal, Slot
@@ -24,6 +25,7 @@ ModelType = Literal["independent", "sequential", "joint"]
 
 
 class State(TypedDict):
+    loading: bool
     imagePath: str
     concepts: dict[str, float]
     selectedConceptPage: int
@@ -39,6 +41,7 @@ class Bridge(QObject):
     def __init__(self, parent: QObject | None = None):
         super().__init__(parent)
         self._state: State = {
+            "loading": False,
             "imagePath": "",
             "concepts": {},
             "selectedConceptPage": 0,
@@ -66,6 +69,14 @@ class Bridge(QObject):
 
     @Slot()
     def predict(self):
+        def task():
+            self._set_state({**self._state, "loading": True})
+            self._predict()
+            self._set_state({**self._state, "loading": False})
+
+        threading.Thread(target=task).start()
+
+    def _predict(self):
         concepts_with_prob = self.image_to_attributes_model.predict(
             MODEL_TYPE_MAP[self._state["modelType"]][0], self._state["imagePath"]
         )
@@ -114,6 +125,14 @@ class Bridge(QObject):
 
     @Slot()
     def rerun(self):
+        def task():
+            self._set_state({**self._state, "loading": True})
+            self._rerun()
+            self._set_state({**self._state, "loading": False})
+
+        threading.Thread(target=task).start()
+
+    def _rerun(self):
         concept_names = load_attribute_names()
         classes_with_prob = self.attributes_to_class_model.predict(
             MODEL_TYPE_MAP[self._state["modelType"]][1],

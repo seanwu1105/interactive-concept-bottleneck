@@ -169,13 +169,17 @@ ApplicationWindow {
                                                 TextField {
                                                     id: conceptProbabilityTextField
                                                     Layout.fillWidth: true
+
                                                     text: (conceptProbabilityRepeater.modelData[1] * 100).toFixed(2)
+                                                    selectByMouse: true
+
                                                     validator: DoubleValidator {
                                                         bottom: 0
                                                         top: 100
                                                         notation: DoubleValidator.StandardNotation
                                                         decimals: 2
                                                     }
+
                                                     onTextEdited: {
                                                         if (text.length === 0) text = 0
                                                         if (Number.isNaN(Number(text))) text = 0
@@ -346,6 +350,7 @@ ApplicationWindow {
 
         RowLayout {
             Layout.fillWidth: true
+            Layout.bottomMargin: 4
             spacing: 8
 
             Label {
@@ -369,6 +374,13 @@ ApplicationWindow {
                 text: "Joint"
                 checked: app.state.modelType === "joint"
                 onClicked: bridge.setModelType("joint")
+            }
+
+            Pane { Layout.fillWidth: true }
+
+            BusyIndicator {
+                running: app.state.loading
+                Layout.preferredHeight: 40
             }
         }
     }
