@@ -12,7 +12,7 @@ ApplicationWindow {
     property var state: JSON.parse(bridge.state)
 
     visible: true
-    width: 1080
+    width: 680
     height: 720
     title: "Interactive Concept Bottleneck Model"
 
