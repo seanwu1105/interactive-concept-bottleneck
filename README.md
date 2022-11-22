@@ -1,6 +1,6 @@
 # Interactive Concept Bottleneck Model
 
-CS593HAI Human-AI Interaction programming assignment 1 @Purdue.
+CS593HAI Human-AI Interaction programming assignment 2 @Purdue.
 
 ## Preview
 
