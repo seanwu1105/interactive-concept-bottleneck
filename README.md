@@ -52,7 +52,7 @@ python main.py
 
 ## Model Architecture
 
-All model accuracies can be found in [`test_models.ipynb`](./test_models.ipynb).
+All model accuracies can be found in [`test_models.ipynb`](./test_models.ipynb). Also, you can find the inference script in [`src/concept_bottleneck/inference.py`](src/concept_bottleneck/inference.py).
 
 ### Independent
 
